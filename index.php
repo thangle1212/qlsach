@@ -48,8 +48,8 @@ if ($controller === 'auth' && !$isLoggedIn && $action !== 'login') {
     // If no controller specified and not logged in, show login
     $controller = 'auth';
     $action = 'showLogin';
-} elseif ($controller === 'auth' && $isLoggedIn) {
-    // If auth controller is called but user is logged in, redirect based on role
+} elseif ($controller === 'auth' && $isLoggedIn && $action !== 'logout') {
+    // If auth controller is called but user is logged in (except for logout), redirect based on role
     switch ($_SESSION['role']) {
         case 'admin':
             header("Location: index.php?controller=admin&action=dashboard");

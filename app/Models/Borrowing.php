@@ -168,4 +168,72 @@ class Borrowing {
         ";
         return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getByUserId($user_id) {
+        $stmt = $this->db->prepare("
+            SELECT br.*, b.title, b.isbn, b.cover_image
+            FROM borrowings br
+            JOIN books b ON br.book_id = b.id
+            WHERE br.user_id = ?
+            ORDER BY br.borrow_date DESC
+        ");
+        $stmt->execute([$user_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getById($id) {
+        $stmt = $this->db->prepare("
+            SELECT br.*, u.full_name, b.title
+            FROM borrowings br
+            JOIN users u ON br.user_id = u.id
+            JOIN books b ON br.book_id = b.id
+            WHERE br.id = ?
+        ");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function checkActiveBorrow($user_id, $book_id) {
+        $stmt = $this->db->prepare(
+            "SELECT id FROM borrowings
+             WHERE user_id = ? AND book_id = ? AND status = 'borrowed'"
+        );
+        $stmt->execute([$user_id, $book_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function renew($id) {
+        try {
+            // Get current due date
+            $stmt = $this->db->prepare("SELECT due_date FROM borrowings WHERE id = ?");
+            $stmt->execute([$id]);
+            $borrowing = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$borrowing) {
+                return false;
+            }
+
+            // Extend due date by max_borrow_days
+            $max_days = 14; // Default
+            try {
+                $max_days = (int)$this->settings->get('max_borrow_days');
+            } catch (Exception $e) {
+                // Use default
+            }
+
+            $new_due_date = date('Y-m-d', strtotime($borrowing['due_date'] . " +$max_days days"));
+
+            $stmt = $this->db->prepare("UPDATE borrowings SET due_date = ? WHERE id = ?");
+            return $stmt->execute([$new_due_date, $id]);
+        } catch (PDOException $e) {
+            error_log("Borrowing Renew Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getActiveBorrowingsCount() {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM borrowings WHERE status = 'borrowed'");
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
 }

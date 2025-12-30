@@ -106,7 +106,7 @@ class AuthController {
             $existingUser = (new User())->findByUsername($data['username']);
             if ($existingUser) {
                 $_SESSION['error'] = 'Tên đăng nhập đã tồn tại';
-                header("Location: index.php?controller=auth&action=showRegister");
+                header(header: "Location: index.php?controller=auth&action=showRegister");
                 exit;
             }
 

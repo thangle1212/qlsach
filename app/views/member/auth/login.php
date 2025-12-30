@@ -1,18 +1,28 @@
 <?php require_once __DIR__ . '/../layout.php'; ?>
 
-<div class="container">
-    <div class="card" style="max-width: 400px; margin: 50px auto;">
-        <h2 style="text-align:center; margin-bottom:20px;">Đăng nhập</h2>
-        <form method="post" action="/qlisach/member/auth/handleLogin">
-            <div style="margin-bottom: 15px;">
-                <label>Username</label>
-                <input type="text" name="username" class="form-control" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title text-center mb-0">Đăng nhập</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="/qlisach/member/auth/handleLogin">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Tên đăng nhập</label>
+                            <input type="text" name="username" class="form-control" id="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <input type="password" name="password" class="form-control" id="password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Đăng nhập</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div style="margin-bottom: 15px;">
-                <label>Password</label>
-                <input type="password" name="password" class="form-control" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
-            </div>
-            <button type="submit" class="btn" style="width:100%;">Đăng nhập</button>
-        </form>
+        </div>
     </div>
 </div>

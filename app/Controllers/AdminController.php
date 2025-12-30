@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__ . '/../Models/User.php';
+require_once __DIR__ . '/../Core/Database.php';
+require_once __DIR__ . '/../Models/Book.php';
+require_once __DIR__ . '/../Models/Borrowing.php';
 
 class AdminController {
     public function __construct() {
@@ -20,6 +23,25 @@ class AdminController {
     }
 
     public function dashboard() {
+        $userModel = new User();
+        $bookModel = new Book();
+        $borrowingModel = new Borrowing();
+
+        // User statistics
+        $totalUsers = count($userModel->getAll());
+        $activeUsers = $this->getActiveUsersCount();
+        $inactiveUsers = $totalUsers - $activeUsers;
+
+        // Book statistics
+        $totalBooks = count($bookModel->getAll());
+        $availableBooks = $this->getAvailableBooksCount();
+        $borrowedBooks = $totalBooks - $availableBooks;
+
+        // Borrowing statistics
+        $totalBorrowings = count($borrowingModel->getAll());
+        $activeBorrowings = $this->getActiveBorrowingsCount();
+        $overdueBorrowings = count($borrowingModel->getOverdueBorrowings());
+
         require __DIR__ . '/../Views/admin/dashboard.php';
     }
 
@@ -82,13 +104,58 @@ class AdminController {
 
     public function deleteUser() {
         $id = $_GET['id'];
-        
+
         if ((new User())->delete($id)) {
             $_SESSION['success'] = 'Xóa người dùng thành công';
         } else {
             $_SESSION['error'] = 'Xóa người dùng thất bại';
         }
-        
+
         header("Location: index.php?controller=admin&action=users");
+    }
+
+    public function statistics() {
+        // Get statistics data
+        $userModel = new User();
+        $bookModel = new Book();
+        $borrowingModel = new Borrowing();
+
+        // User statistics
+        $totalUsers = count($userModel->getAll());
+        $activeUsers = $this->getActiveUsersCount();
+        $inactiveUsers = $totalUsers - $activeUsers;
+
+        // Book statistics
+        $totalBooks = count($bookModel->getAll());
+        $availableBooks = $this->getAvailableBooksCount();
+        $borrowedBooks = $totalBooks - $availableBooks;
+
+        // Borrowing statistics
+        $totalBorrowings = count($borrowingModel->getAll());
+        $activeBorrowings = $this->getActiveBorrowingsCount();
+        $overdueBorrowings = count($borrowingModel->getOverdueBorrowings());
+
+        require __DIR__ . '/../Views/admin/statistics.php';
+    }
+
+    private function getActiveUsersCount() {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM users WHERE status = 'active'");
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+
+    private function getAvailableBooksCount() {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT SUM(available_copies) FROM books");
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+
+    private function getActiveBorrowingsCount() {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM borrowings WHERE status = 'borrowed'");
+        $stmt->execute();
+        return $stmt->fetchColumn();
     }
 }

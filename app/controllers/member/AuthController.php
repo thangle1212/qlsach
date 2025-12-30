@@ -30,26 +30,32 @@ class AuthController
             die('Tài khoản chưa được kích hoạt');
         }
 
-        $_SESSION['user'] = [
-    'id' => $user['id'],
-    'full_name' => $user['full_name'],
-    'username' => $user['username'],
-    'email' => $user['email'],
-    'phone' => $user['phone'],
-    'address' => $user['address'],
-    'role' => $user['role'],
-    'status' => $user['status'],
-    'max_borrow_limit' => $user['max_borrow_limit'],
-    'current_borrow_count' => $user['current_borrow_count']
-];
+        // Use the main system's session structure
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['role'] = $user['role'];
+        $_SESSION['full_name'] = $user['full_name'];
 
-
-        header('Location: ' . BASE_URL . '/member/dashboard');
+        header('Location: ../../index.php?controller=book');
     }
 
     public function logout()
     {
+        // Clear all session variables like in the main system
+        $_SESSION = array();
+
+        // Also delete the session cookie if it exists
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+
+        // Destroy the session
         session_destroy();
-        header('Location: ' . BASE_URL . '/member/auth/login');
+
+        header('Location: ../../index.php?controller=auth&action=showLogin');
     }
 }

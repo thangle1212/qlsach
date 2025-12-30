@@ -1,37 +1,59 @@
-<?php include __DIR__ . '/../../../app/header.php'; ?>
+<?php include __DIR__ . '/../../header.php'; ?>
 
-<div class="card">
-    <h2>Mượn sách (Admin)</h2>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Tạo phiếu mượn sách</h2>
+        </div>
+    </div>
 
-    <form method="post" action="index.php?controller=borrowing&action=store">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" action="index.php?controller=borrowing&action=store">
+                        <div class="mb-3">
+                            <label for="user_id" class="form-label">Người mượn</label>
+                            <select class="form-select" id="user_id" name="user_id" required>
+                                <?php foreach ($users as $u): ?>
+                                    <option value="<?= $u['id'] ?>">
+                                        <?= htmlspecialchars($u['full_name']) ?> (<?= $u['username'] ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-        <label>Người mượn:</label><br>
-        <select name="user_id" required>
-            <?php foreach ($users as $u): ?>
-                <option value="<?= $u['id'] ?>">
-                    <?= htmlspecialchars($u['full_name']) ?> (<?= $u['username'] ?>)
-                </option>
-            <?php endforeach; ?>
-        </select>
-        <br><br>
+                        <div class="mb-3">
+                            <label for="book_id" class="form-label">Sách</label>
+                            <select class="form-select" id="book_id" name="book_id" required>
+                                <?php foreach ($books as $b): ?>
+                                    <?php if ($b['available_copies'] > 0): ?>
+                                        <option value="<?= $b['id'] ?>">
+                                            <?= htmlspecialchars($b['title']) ?> (còn <?= $b['available_copies'] ?>)
+                                        </option>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-        <label>Sách:</label><br>
-        <select name="book_id" required>
-            <?php foreach ($books as $b): ?>
-                <?php if ($b['available_copies'] > 0): ?>
-                    <option value="<?= $b['id'] ?>">
-                        <?= htmlspecialchars($b['title']) ?> (còn <?= $b['available_copies'] ?>)
-                    </option>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </select>
-        <br><br>
+                        <div class="mb-3">
+                            <label for="due_date" class="form-label">Ngày trả</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date" required>
+                        </div>
 
-        <label>Ngày trả:</label><br>
-        <input type="date" name="due_date" required><br><br>
-
-        <button type="submit">📚 Mượn</button>
-    </form>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="index.php?controller=borrowing" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-book"></i> Tạo phiếu mượn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<?php include __DIR__ . '/../../../app/footer.php'; ?>
+<?php include __DIR__ . '/../../footer.php'; ?>

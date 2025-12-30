@@ -63,23 +63,47 @@ class User {
     }
 
     public function update($id, $data) {
-        $sql = "
-            UPDATE users 
-            SET username = ?, email = ?, full_name = ?, phone = ?, address = ?, role = ?, status = ?
-            WHERE id = ?
-        ";
-        
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
-            $data['username'],
-            $data['email'],
-            $data['full_name'],
-            $data['phone'] ?? null,
-            $data['address'] ?? null,
-            $data['role'],
-            $data['status'],
-            $id
-        ]);
+        try {
+            // If all fields provided (for admin updates)
+            if (isset($data['username']) && isset($data['email']) && isset($data['role'])) {
+                $sql = "
+                    UPDATE users 
+                    SET username = ?, email = ?, full_name = ?, phone = ?, address = ?, role = ?, status = ?
+                    WHERE id = ?
+                ";
+                
+                $stmt = $this->db->prepare($sql);
+                return $stmt->execute([
+                    $data['username'],
+                    $data['email'],
+                    $data['full_name'],
+                    $data['phone'] ?? null,
+                    $data['address'] ?? null,
+                    $data['role'],
+                    $data['status'],
+                    $id
+                ]);
+            } else {
+                // For member profile updates
+                $sql = "
+                    UPDATE users 
+                    SET full_name = ?, phone = ?, address = ?, email = ?
+                    WHERE id = ?
+                ";
+                
+                $stmt = $this->db->prepare($sql);
+                return $stmt->execute([
+                    $data['full_name'],
+                    $data['phone'] ?? null,
+                    $data['address'] ?? null,
+                    $data['email'],
+                    $id
+                ]);
+            }
+        } catch (PDOException $e) {
+            error_log("User Update Error: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function delete($id) {
@@ -94,5 +118,21 @@ class User {
             password_hash($newPassword, PASSWORD_DEFAULT),
             $id
         ]);
+    }
+
+    public function getById($id) {
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function updatePassword($id, $password_hash) {
+        try {
+            $stmt = $this->db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+            return $stmt->execute([$password_hash, $id]);
+        } catch (PDOException $e) {
+            error_log("User Update Password Error: " . $e->getMessage());
+            return false;
+        }
     }
 }

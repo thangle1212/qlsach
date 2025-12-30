@@ -1,60 +1,64 @@
-<?php $pageTitle = 'Lịch sử mượn sách'; ?>
+<?php require_once __DIR__ . '/../layout.php'; ?>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h5 class="card-title mb-0"><i class="fas fa-history"></i> Lịch sử mượn sách</h5>
-            </div>
-            <div class="card-body">
-                <?php if (!empty($history)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tiêu đề sách</th>
-                                    <th>Ngày mượn</th>
-                                    <th>Ngày trả</th>
-                                    <th>Trạng thái</th>
-                                    <th>Phạt</th>
-                                    <th>Ghi chú</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($history as $h): ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($h['book_title']) ?></td>
-                                        <td><?= date('d/m/Y', strtotime($h['borrow_date'])) ?></td>
-                                        <td><?= $h['return_date'] ? date('d/m/Y', strtotime($h['return_date'])) : '-' ?></td>
-                                        <td>
-                                            <span class="status-<?= $h['status'] ?>">
-                                                <?php
-                                                switch($h['status']) {
-                                                    case 'borrowed': echo 'Đang mượn'; break;
-                                                    case 'returned': echo 'Đã trả'; break;
-                                                    case 'overdue': echo 'Quá hạn'; break;
-                                                    case 'lost': echo 'Mất sách'; break;
-                                                    default: echo $h['status'];
-                                                }
-                                                ?>
-                                            </span>
-                                        </td>
-                                        <td><?= $h['fine_amount'] ?></td>
-                                        <td><?= htmlspecialchars($h['notes']) ?></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php else: ?>
-                    <div class="text-center py-5">
-                        <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
-                        <h5>Chưa có lịch sử mượn sách</h5>
-                        <p class="text-muted">Hãy mượn sách để lịch sử được lưu</p>
-                        <a href="/qlisach/member/books" class="btn btn-primary">Tìm sách để mượn</a>
-                    </div>
-                <?php endif; ?>
+<div class="container mt-4">
+    <h2 class="mb-4">Lịch sử mượn sách</h2>
+
+    <?php if (!empty($borrowings)): ?>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-primary">
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên sách</th>
+                        <th>Ngày mượn</th>
+                        <th>Ngày trả</th>
+                        <th>Ngày hết hạn</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($borrowings as $b): ?>
+                    <tr>
+                        <td><?= $b['id'] ?></td>
+                        <td><?= htmlspecialchars($b['title']) ?></td>
+                        <td><?= $b['borrow_date'] ?></td>
+                        <td><?= $b['return_date'] ?: 'Chưa trả' ?></td>
+                        <td><?= $b['due_date'] ?></td>
+                        <td>
+                            <?php
+                            switch($b['status']) {
+                                case 'borrowed':
+                                    echo '<span class="badge bg-warning">Đang mượn</span>';
+                                    break;
+                                case 'returned':
+                                    echo '<span class="badge bg-success">Đã trả</span>';
+                                    break;
+                                case 'overdue':
+                                    echo '<span class="badge bg-danger">Quá hạn</span>';
+                                    break;
+                                default:
+                                    echo '<span class="badge bg-secondary">' . $b['status'] . '</span>';
+                            }
+                            ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php else: ?>
+        <div class="card">
+            <div class="card-body text-center">
+                <h5>Chưa có lịch sử mượn sách</h5>
+                <p class="text-muted">Hãy mượn sách để lịch sử được lưu</p>
+                <a href="<?= BASE_URL ?>/member/books" class="btn btn-primary">Tìm sách để mượn</a>
             </div>
         </div>
-    </div>
+    <?php endif; ?>
 </div>
+
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
