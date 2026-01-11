@@ -79,7 +79,7 @@
                                             <td><?= $b['due_date'] ?></td>
                                             <td>
                                                 <?php
-                                                switch($b['status']) {
+                                                switch ($b['status']) {
                                                     case 'borrowed':
                                                         echo '<span class="badge bg-warning">Đang mượn</span>';
                                                         break;
@@ -154,3 +154,5 @@
         </div>
     </div>
 </div>
+
+<?php require_once __DIR__ . '/../../footer.php'; ?>

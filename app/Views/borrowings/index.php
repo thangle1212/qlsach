@@ -5,8 +5,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Quản lý mượn – trả</h2>
-                <a href="index.php?controller=borrowing&action=create" class="btn btn-success">
-                    <i class="fas fa-plus"></i> Tạo phiếu mượn
+                
                 </a>
             </div>
         </div>
@@ -26,7 +25,7 @@
                                     <th>Ngày mượn</th>
                                     <th>Ngày trả</th>
                                     <th>Trạng thái</th>
-                                    <th>Hành động</th>
+                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -59,18 +58,6 @@
                                         ?>
                                     </td>
                                     <td>
-                                        <?php if ($b['status'] === 'borrowed'): ?>
-                                            <a href="index.php?controller=borrowing&action=return&id=<?= $b['id'] ?>" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-undo"></i> Trả sách
-                                            </a>
-                                            <a href="index.php?controller=borrowing&action=renew&id=<?= $b['id'] ?>" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-sync-alt"></i> Gia hạn
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="text-success">Đã trả</span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
