@@ -86,46 +86,93 @@ class AuthController {
 
     public function register() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $username = trim($_POST['username'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $password = $_POST['password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+            $fullName = trim($_POST['full_name'] ?? '');
+            $phone = trim($_POST['phone'] ?? '');
+            $address = trim($_POST['address'] ?? '');
+
+            // Validate required fields
+            if (empty($username) || empty($email) || empty($password) || empty($fullName)) {
+                $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin bắt buộc';
+                header("Location: index.php?controller=auth&action=showRegister");
+                exit;
+            }
+
+            // Validate password length
+            if (strlen($password) < 6) {
+                $_SESSION['error'] = 'Mật khẩu phải có ít nhất 6 ký tự';
+                header("Location: index.php?controller=auth&action=showRegister");
+                exit;
+            }
+
+            // Validate password confirmation
+            if ($password !== $confirmPassword) {
+                $_SESSION['error'] = 'Mật khẩu xác nhận không khớp';
+                header("Location: index.php?controller=auth&action=showRegister");
+                exit;
+            }
+
+            // Validate email format
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $_SESSION['error'] = 'Địa chỉ email không hợp lệ';
+                header("Location: index.php?controller=auth&action=showRegister");
+                exit;
+            }
+
+            // Validate username length and format
+            if (strlen($username) < 3 || strlen($username) > 50) {
+                $_SESSION['error'] = 'Tên đăng nhập phải từ 3 đến 50 ký tự';
+                header("Location: index.php?controller=auth&action=showRegister");
+                exit;
+            }
+
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
+                $_SESSION['error'] = 'Tên đăng nhập chỉ chứa chữ, số và dấu gạch dưới';
+                header("Location: index.php?controller=auth&action=showRegister");
+                exit;
+            }
+
+            // Check if username already exists
+            if ($this->user->findByUsername($username)) {
+                $_SESSION['error'] = 'Tên đăng nhập đã tồn tại';
+                header("Location: index.php?controller=auth&action=showRegister");
+                exit;
+            }
+
+            // Check if email already exists
+            if ($this->checkEmailExists($email)) {
+                $_SESSION['error'] = 'Email đã được sử dụng';
+                header("Location: index.php?controller=auth&action=showRegister");
+                exit;
+            }
+
+            // Prepare data for creation
             $data = [
-                'username' => $_POST['username'],
-                'email' => $_POST['email'],
-                'password' => $_POST['password'],
-                'full_name' => $_POST['full_name'],
-                'phone' => $_POST['phone'] ?? null,
-                'address' => $_POST['address'] ?? null,
+                'username' => $username,
+                'email' => $email,
+                'password' => $password,
+                'full_name' => $fullName,
+                'phone' => !empty($phone) ? $phone : null,
+                'address' => !empty($address) ? $address : null,
                 'role' => 'member'
             ];
 
-            // Validate input
-            if (empty($data['username']) || empty($data['email']) || empty($data['password'])) {
-                $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin';
-                header("Location: index.php?controller=auth&action=showRegister");
-                exit;
-            }
-
-            // Check if username or email already exists
-            $existingUser = (new User())->findByUsername($data['username']);
-            if ($existingUser) {
-                $_SESSION['error'] = 'Tên đăng nhập đã tồn tại';
-                header(header: "Location: index.php?controller=auth&action=showRegister");
-                exit;
-            }
-
-            $existingUserByEmail = $this->checkEmailExists($data['email']);
-            if ($existingUserByEmail) {
-                $_SESSION['error'] = 'Email đã tồn tại';
-                header("Location: index.php?controller=auth&action=showRegister");
-                exit;
-            }
-
+            // Create new user
             if ($this->user->create($data)) {
-                $_SESSION['success'] = 'Đăng ký thành công. Vui lòng chờ quản trị viên kích hoạt tài khoản.';
+                $_SESSION['success'] = 'Đăng ký thành công! Tài khoản của bạn đang chờ kích hoạt từ quản trị viên.';
                 header("Location: index.php?controller=auth&action=showLogin");
+                exit;
             } else {
                 $_SESSION['error'] = 'Đăng ký thất bại. Vui lòng thử lại.';
                 header("Location: index.php?controller=auth&action=showRegister");
                 exit;
             }
+        } else {
+            // Show registration form
+            $this->showRegister();
         }
     }
 

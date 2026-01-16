@@ -66,7 +66,32 @@
             color: #007bff;
             text-decoration: none;
         }
+        small {
+            font-size: 12px;
+        }
     </style>
+    <script>
+        // Validate password match on form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const passwordField = document.getElementById('password');
+            const confirmPasswordField = document.getElementById('confirm_password');
+            
+            form.addEventListener('submit', function(e) {
+                if (passwordField.value !== confirmPasswordField.value) {
+                    e.preventDefault();
+                    alert('Mật khẩu xác nhận không khớp!');
+                    confirmPasswordField.focus();
+                    return false;
+                }
+                if (passwordField.value.length < 6) {
+                    e.preventDefault();
+                    alert('Mật khẩu phải có ít nhất 6 ký tự!');
+                    return false;
+                }
+            });
+        });
+    </script>
 </head>
 <body>
     <div class="register-container">
@@ -100,7 +125,13 @@
             
             <div class="form-group">
                 <label for="password">Mật khẩu:</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" required minlength="6">
+                <small style="color: #666; display: block; margin-top: 3px;">Tối thiểu 6 ký tự</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_password">Xác nhận mật khẩu:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
             </div>
             
             <div class="form-group">

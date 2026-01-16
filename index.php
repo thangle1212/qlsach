@@ -8,13 +8,22 @@ if (session_status() == PHP_SESSION_NONE) {
 $controller = $_GET['controller'] ?? 'auth';
 $action = $_GET['action'] ?? 'showLogin';
 
-// Special handling for login action to prevent conflicts
+// Special handling for login and register actions to prevent conflicts
 if ($controller === 'auth' && $action === 'login') {
     // Load the AuthController and execute login action directly
     require_once "app/Controllers/AuthController.php";
     $authCtrl = new AuthController();
     $authCtrl->login();
     // The login method should redirect and exit, so we shouldn't reach here
+    exit;
+}
+
+if ($controller === 'auth' && $action === 'register') {
+    // Load the AuthController and execute register action directly
+    require_once "app/Controllers/AuthController.php";
+    $authCtrl = new AuthController();
+    $authCtrl->register();
+    // The register method should redirect and exit
     exit;
 }
 
@@ -44,11 +53,11 @@ if (!$isLoggedIn && !$isUnauthenticatedAllowed && !($controller === 'auth' && $a
 }
 
 // Special handling for default route when logged in
-if ($controller === 'auth' && !$isLoggedIn && $action !== 'login') {
+if ($controller === 'auth' && !$isLoggedIn && $action !== 'login' && $action !== 'showRegister' && $action !== 'register') {
     // If no controller specified and not logged in, show login
     $controller = 'auth';
     $action = 'showLogin';
-} elseif ($controller === 'auth' && $isLoggedIn && $action !== 'logout') {
+} elseif ($controller === 'auth' && $isLoggedIn && $action !== 'logout' && $action !== 'showRegister' && $action !== 'register') {
     // If auth controller is called but user is logged in (except for logout), redirect based on role
     switch ($_SESSION['role']) {
         case 'admin':
