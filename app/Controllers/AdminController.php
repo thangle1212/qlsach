@@ -41,7 +41,8 @@ class AdminController
         // Book statistics
         $totalBooks = count($bookModel->getAll());
         $availableBooks = $this->getAvailableBooksCount();
-        $borrowedBooks = $totalBooks - $availableBooks;
+        $totalCopies = $this->getTotalCopiesCount();
+        $borrowedBooks = $totalCopies - $availableBooks;
 
         // Borrowing statistics using new schema
         $totalBorrowings = $this->getTotalBorrowingsCount();
@@ -163,7 +164,8 @@ class AdminController
         // Book statistics
         $totalBooks = count($bookModel->getAll());
         $availableBooks = $this->getAvailableBooksCount();
-        $borrowedBooks = $totalBooks - $availableBooks;
+        $totalCopies = $this->getTotalCopiesCount();
+        $borrowedBooks = $totalCopies - $availableBooks;
 
         // Borrowing statistics using new schema
         $totalBorrowings = $this->getTotalBorrowingsCount();
@@ -220,6 +222,14 @@ class AdminController
     {
         $db = Database::getInstance();
         $stmt = $db->prepare("SELECT SUM(available_copies) FROM books");
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+
+    private function getTotalCopiesCount()
+    {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT SUM(total_copies) FROM books");
         $stmt->execute();
         return $stmt->fetchColumn();
     }
