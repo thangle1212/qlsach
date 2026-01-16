@@ -75,13 +75,15 @@
                     <h5>Hành động</h5>
                 </div>
                 <div class="card-body">
-                    <?php if ($loanSlip['status'] === 'active'): ?>
+                    <?php if ($loanSlip['status'] === 'active' && ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'librarian')): ?>
                         <a href="index.php?controller=borrowing&action=viewReturnForm&id=<?= $loanSlip['id'] ?>" class="btn btn-warning w-100 mb-2">
                             <i class="fas fa-undo"></i> Trả sách
                         </a>
                         <a href="index.php?controller=borrowing&action=renew&id=<?= $loanSlip['id'] ?>" class="btn btn-primary w-100">
                             <i class="fas fa-sync"></i> Gia hạn
                         </a>
+                    <?php elseif ($loanSlip['status'] === 'active' && $_SESSION['role'] === 'member'): ?>
+                        <p class="text-info">Vui lòng liên hệ thủ thư để trả sách hoặc gia hạn</p>
                     <?php else: ?>
                         <p class="text-success">Phiếu mượn đã hoàn tất</p>
                     <?php endif; ?>

@@ -1,238 +1,294 @@
-DROP DATABASE IF EXISTS library_management;
-CREATE DATABASE library_management
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
+-- ================================
+  -- 1. TẠO DATABASE
+  -- ================================
+  DROP DATABASE IF EXISTS library_management;
+  CREATE DATABASE library_management
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+  USE library_management;
 
-USE library_management;
+  -- ================================
+  -- 2. DANH MỤC
+  -- ================================
 
-CREATE TABLE categories (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    parent_id INT DEFAULT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE CASCADE,
-    INDEX idx_parent (parent_id)
-);
+  CREATE TABLE categories (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      parent_id INT DEFAULT NULL,
+      description TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL
+  );
 
-CREATE TABLE authors (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    biography TEXT,
-    nationality VARCHAR(50),
-    birth_year YEAR,
-    death_year YEAR,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_name (name)
-);
+  CREATE TABLE authors (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      biography TEXT,
+      nationality VARCHAR(50),
+      birth_year YEAR,
+      death_year YEAR,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE publishers (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      address TEXT,
+      phone VARCHAR(20),
+      email VARCHAR(100),
+      website VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+  -- ================================
+  -- 3. USERS
+  -- ================================
+
+  CREATE TABLE users (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      username VARCHAR(50) UNIQUE NOT NULL,
+      email VARCHAR(100) UNIQUE NOT NULL,
+      password_hash VARCHAR(255) NOT NULL,
+      full_name VARCHAR(100) NOT NULL,
+      phone VARCHAR(20),
+      address TEXT,
+      role ENUM('admin', 'librarian', 'member') DEFAULT 'member',
+      status ENUM('active', 'inactive') DEFAULT 'active',
+      max_borrow_limit INT DEFAULT 5,
+      current_borrow_count INT DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+  -- ================================
+  -- 4. BOOKS
+  -- ================================
+
+  CREATE TABLE books (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      isbn VARCHAR(20) UNIQUE,
+      author_id INT,
+      publisher_id INT,
+      category_id INT,
+      description TEXT,
+      total_copies INT DEFAULT 1,
+      available_copies INT DEFAULT 1,
+      shelf_location VARCHAR(50),
+      cover_image VARCHAR(255),
+      publication_year YEAR,
+      language VARCHAR(50) DEFAULT 'Vietnamese',
+      pages INT,
+      price DECIMAL(10,2),
+      is_reference BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+      FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE SET NULL,
+      FOREIGN KEY (publisher_id) REFERENCES publishers(id) ON DELETE SET NULL,
+      FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+  );
+
+  -- ================================
+  -- 5. PHIẾU MƯỢN (LOAN SLIP)
+  -- ================================
+
+  CREATE TABLE loan_slips (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      librarian_id INT,
+      borrow_date DATE NOT NULL,
+      due_date DATE NOT NULL,
+      status ENUM('active', 'completed', 'overdue') DEFAULT 'active',
+      note TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (librarian_id) REFERENCES users(id)
+  );
+
+  -- ================================
+  -- 6. CHI TIẾT MƯỢN SÁCH
+  -- ================================
+
+  CREATE TABLE loan_items (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      loan_id INT NOT NULL,
+      book_id INT NOT NULL,
+      quantity INT DEFAULT 1,
+      returned_quantity INT DEFAULT 0,
+      status ENUM('borrowed', 'returned', 'lost') DEFAULT 'borrowed',
+
+      FOREIGN KEY (loan_id) REFERENCES loan_slips(id) ON DELETE CASCADE,
+      FOREIGN KEY (book_id) REFERENCES books(id)
+  );
+
+  -- ================================
+  -- 7. PHIẾU TRẢ
+  -- ================================
+
+  CREATE TABLE return_slips (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      loan_id INT NOT NULL,
+      return_date DATE NOT NULL,
+      librarian_id INT,
+      note TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+      FOREIGN KEY (loan_id) REFERENCES loan_slips(id),
+      FOREIGN KEY (librarian_id) REFERENCES users(id)
+  );
+
+  -- ================================
+  -- 8. CHI TIẾT TRẢ
+  -- ================================
+
+  CREATE TABLE return_items (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      return_id INT NOT NULL,
+      loan_item_id INT NOT NULL,
+      quantity INT NOT NULL,
+
+      FOREIGN KEY (return_id) REFERENCES return_slips(id) ON DELETE CASCADE,
+      FOREIGN KEY (loan_item_id) REFERENCES loan_items(id)
+  );
+
+  -- ================================
+  -- 9. PHIẾU PHẠT
+  -- ================================
+
+  CREATE TABLE fines (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      loan_id INT NOT NULL,
+      amount DECIMAL(10,2) NOT NULL,
+      reason ENUM('overdue', 'lost', 'damaged') DEFAULT 'overdue',
+      status ENUM('unpaid', 'paid', 'waived') DEFAULT 'unpaid',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (loan_id) REFERENCES loan_slips(id)
+  );
+
+  -- ================================
+  -- 10. ĐẶT TRƯỚC
+  -- ================================
+
+  CREATE TABLE reservations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      book_id INT NOT NULL,
+      reservation_date DATE NOT NULL,
+      expiry_date DATE,
+      status ENUM('pending', 'available', 'cancelled') DEFAULT 'pending',
+
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (book_id) REFERENCES books(id)
+  );
+
+  -- ================================
+  -- 11. SETTINGS
+  -- ================================
+
+  CREATE TABLE settings (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      `key` VARCHAR(100) UNIQUE NOT NULL,
+      value TEXT NOT NULL,
+      description TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  );
+
+  INSERT INTO settings (`key`, value, description) VALUES
+  ('max_borrow_days', '14', 'Số ngày mượn tối đa'),
+  ('fine_per_day', '5000', 'Tiền phạt mỗi ngày quá hạn'),
+  ('max_books_per_user', '5', 'Số sách tối đa được mượn');
 
 
-CREATE TABLE publishers (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    address TEXT,
-    phone VARCHAR(20),
-    email VARCHAR(100),
-    website VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_name (name)
-);
+  -- ================================
+  -- 1. CATEGORIES
+  -- ================================
+  INSERT INTO categories (name, description) VALUES
+  ('Computer Science', 'IT & Programming'),
+  ('Economics', 'Business and Economics'),
+  ('Literature', 'Literary works');
 
+  -- ================================
+  -- 2. AUTHORS
+  -- ================================
+  INSERT INTO authors (name, nationality, birth_year) VALUES
+  ('Robert C. Martin', 'USA', 1952),
+  ('Martin Fowler', 'UK', 1963),
+  ('Nguyễn Nhật Ánh', 'Vietnam', 1955);
 
-CREATE TABLE users (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    full_name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    address TEXT,
-    role ENUM('admin', 'librarian', 'member') DEFAULT 'member',
-    status ENUM('active', 'inactive', 'pending') DEFAULT 'pending',
-    max_borrow_limit INT DEFAULT 5,
-    current_borrow_count INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_username (username),
-    INDEX idx_email (email),
-    INDEX idx_role (role)
-);
+  -- ================================
+  -- 3. PUBLISHERS
+  -- ================================
+  INSERT INTO publishers (name, address, phone) VALUES
+  ('O’Reilly Media', 'USA', '123456789'),
+  ('NXB Trẻ', 'TP.HCM', '0909000999');
 
+  -- ================================
+  -- 4. USERS
+  -- ================================
+  INSERT INTO users (username, email, password_hash, full_name, role) VALUES
+  ('admin', 'admin@lib.com', '$2y$10$hash', 'Library Admin', 'admin'),
+  ('librarian1', 'lib@lib.com', '$2y$10$hash', 'Main Librarian', 'librarian'),
+  ('member1', 'mem1@lib.com', '$2y$10$hash', 'Nguyễn Văn A', 'member'),
+  ('member2', 'mem2@lib.com', '$2y$10$hash', 'Trần Thị B', 'member');
 
-CREATE TABLE books (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    title VARCHAR(255) NOT NULL,
-    isbn VARCHAR(20) UNIQUE,
-    author_id INT,
-    publisher_id INT,
-    category_id INT,
-    description TEXT,
-    total_copies INT DEFAULT 1,
-    available_copies INT DEFAULT 1,
-    shelf_location VARCHAR(50),
-    cover_image VARCHAR(255),
-    publication_year YEAR,
-    language VARCHAR(50) DEFAULT 'Vietnamese',
-    pages INT,
-    price DECIMAL(10,2),
-    is_reference BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE SET NULL,
-    FOREIGN KEY (publisher_id) REFERENCES publishers(id) ON DELETE SET NULL,
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
-    INDEX idx_title (title),
-    INDEX idx_isbn (isbn),
-    INDEX idx_author (author_id),
-    INDEX idx_category (category_id)
-);
+  -- ================================
+  -- 5. BOOKS
+  -- ================================
+  INSERT INTO books
+  (title, isbn, author_id, publisher_id, category_id, total_copies, available_copies, price) VALUES
+  ('Clean Code', '9780132350884', 1, 1, 1, 5, 5, 350000),
+  ('Refactoring', '9780201485677', 2, 1, 1, 3, 3, 420000),
+  ('Cho Tôi Xin Một Vé Đi Tuổi Thơ', '9786042083723', 3, 2, 3, 10, 10, 95000);
 
+  -- ================================
+  -- 6. PHIẾU MƯỢN (1 mượn nhiều sách)
+  -- ================================
+  INSERT INTO loan_slips (user_id, librarian_id, borrow_date, due_date) VALUES
+  (3, 2, '2024-01-01', '2024-01-15');
 
-CREATE TABLE borrowings (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    book_id INT NOT NULL,
-    librarian_id INT,
-    borrow_date DATE NOT NULL,
-    due_date DATE NOT NULL,
-    return_date DATE,
-    status ENUM('borrowed', 'returned', 'overdue', 'lost') DEFAULT 'borrowed',
-    fine_amount DECIMAL(10,2) DEFAULT 0.00,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
-    FOREIGN KEY (librarian_id) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_user_id (user_id),
-    INDEX idx_book_id (book_id),
-    INDEX idx_status (status),
-    INDEX idx_due_date (due_date)
-);
+  -- ================================
+  -- 7. CHI TIẾT MƯỢN
+  -- ================================
+  INSERT INTO loan_items (loan_id, book_id, quantity) VALUES
+  (1, 1, 1), -- Clean Code
+  (1, 2, 1), -- Refactoring
+  (1, 3, 2); -- Nguyễn Nhật Ánh
 
+  -- ================================
+  -- 8. PHIẾU TRẢ (trả 1 phần)
+  -- ================================
+  INSERT INTO return_slips (loan_id, librarian_id, return_date) VALUES
+  (1, 2, '2024-01-10');
 
-CREATE TABLE reservations (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    book_id INT NOT NULL,
-    reservation_date DATE NOT NULL,
-    status ENUM('pending', 'available', 'cancelled', 'expired') DEFAULT 'pending',
-    expiry_date DATE,
-    priority INT DEFAULT 1,
-    notification_sent BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_active_reservation (user_id, book_id, status),
-    INDEX idx_user_book (user_id, book_id),
-    INDEX idx_status_expiry (status, expiry_date)
-);
+  INSERT INTO return_items (return_id, loan_item_id, quantity) VALUES
+  (1, 1, 1), -- Trả Clean Code
+  (1, 3, 1); -- Trả 1 quyển truyện
 
+  -- ================================
+  -- 9. CẬP NHẬT TRẠNG THÁI MƯỢN
+  -- ================================
+  UPDATE loan_items SET
+      returned_quantity = 1,
+      status = 'returned'
+  WHERE id = 1;
 
-CREATE TABLE fines (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    borrowing_id INT NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    reason ENUM('overdue', 'lost', 'damaged') DEFAULT 'overdue',
-    status ENUM('paid', 'unpaid', 'waived') DEFAULT 'unpaid',
-    paid_date DATE,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (borrowing_id) REFERENCES borrowings(id) ON DELETE CASCADE,
-    INDEX idx_user_status (user_id, status)
-);
+  UPDATE loan_items SET
+      returned_quantity = 1,
+      status = 'borrowed'
+  WHERE id = 3;
 
+  -- ================================
+  -- 10. PHIẾU PHẠT (quá hạn)
+  -- ================================
+  INSERT INTO fines (user_id, loan_id, amount, reason) VALUES
+  (3, 1, 50000, 'overdue');
 
-CREATE TABLE settings (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    `key` VARCHAR(100) UNIQUE NOT NULL,
-    value TEXT NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
-INSERT INTO settings (`key`, value, description) VALUES
-('max_borrow_days', '14', 'Số ngày mượn tối đa'),
-('fine_per_day', '5000', 'Tiền phạt mỗi ngày quá hạn'),
-('max_books_per_user', '5', 'Số sách tối đa mỗi người dùng có thể mượn');
-
--- ========== DỮ LIỆU MẪU ==========
-
--- Chuyên mục
-INSERT INTO categories (name, description) VALUES
-('Văn học Việt Nam', 'Các tác phẩm văn học của các tác giả Việt Nam'),
-('Văn học Nước ngoài', 'Tác phẩm dịch từ các nước khác'),
-('Khoa học - Công nghệ', 'Sách về khoa học, công nghệ, lập trình'),
-('Kinh tế - Quản lý', 'Sách về kinh tế, quản lý doanh nghiệp'),
-('Lịch sử - Địa lý', 'Sách về lịch sử và địa lý'),
-('Tự giáo dục', 'Sách kỹ năng, phát triển bản thân'),
-('Trẻ em', 'Sách dành cho trẻ em'),
-('Nghệ thuật - Thể thao', 'Sách về nghệ thuật, âm nhạc, thể thao');
-
--- Tác giả
-INSERT INTO authors (name, biography, nationality, birth_year) VALUES
-('Nguyễn Du', 'Tác giả của Truyện Kiều - tác phẩm vĩ đại của văn học Việt Nam', 'Việt Nam', 1765),
-('Mạc Dinh Chi', 'Nhà thơ, nhà dịch nổi tiếng thế kỷ 20', 'Việt Nam', 1906),
-('Dương Thu Hương', 'Nhà văn nổi tiếng, tác giả Những đứa con lưu vong', 'Việt Nam', 1947),
-('Harper Lee', 'Tác giả tiểu thuyết To Kill a Mockingbird', 'Mỹ', 1926),
-('George Orwell', 'Nhà văn, tác giả 1984', 'Anh', 1903),
-('Jane Austen', 'Nhà văn tiểu thuyết lãng mạn tiếng Anh', 'Anh', 1775),
-('Steve Jobs', 'Người sáng lập Apple', 'Mỹ', 1955),
-('Malcolm Gladwell', 'Nhà tác giả chuyên về tâm lý học xã hội', 'Canada', 1963);
-
--- Nhà xuất bản
-INSERT INTO publishers (name, address, phone, email, website) VALUES
-('Nhà Xuất Bản Hội Nhà Văn', '30 Tạ Quang Bửu, Hà Nội', '0243922928', 'info@writers.vn', 'https://nhaxuatbanhoinhavans.vn'),
-('Nhà Xuất Bản Kim Đồng', 'Phố Huế, Hà Nội', '0243826336', 'info@kimdongjsc.com.vn', 'https://kimdong.vn'),
-('Nhà Xuất Bản Trẻ', 'TP. Hồ Chí Minh', '02837625023', 'info@nxbtre.com.vn', 'https://nxbtre.com.vn'),
-('Nhà Xuất Bản Lao Động', 'Hà Nội', '0243766342', 'contact@nxblaodong.vn', 'https://nxblaodong.vn'),
-('Penguin Books', 'London, UK', '+44123456789', 'info@penguin.co.uk', 'https://www.penguin.co.uk'),
-('Hachette Book Group', 'New York, USA', '+12125224200', 'info@hachette.com', 'https://www.hachettebookgroup.com');
-
--- Người dùng
-INSERT INTO users (username, email, password_hash, full_name, phone, address, role, status, max_borrow_limit) VALUES
-('admin', 'admin@library.vn', 'admin', 'Quản trị viên', '0987654321', '123 Đường Hùng Vương, Hà Nội', 'admin', 'active', 10),
-('librarian1', 'lib1@library.vn', 'librarian1', 'Nguyễn Thị Liên', '0976543210', '45 Nguyễn Huệ, Hà Nội', 'librarian', 'active', 10),
-('librarian2', 'lib2@library.vn', 'librarian2', 'Trần Văn Tuấn', '0965432109', '67 Tô Ngọc Vân, Hà Nội', 'librarian', 'active', 10),
-('member1', 'member1@library.vn', 'member1', 'Phạm Minh Đức', '0954321098', '12 Trần Phú, Hà Nội', 'member', 'active', 5),
-('member2', 'member2@library.vn', 'member2', 'Lê Thị Hương', '0943210987', '89 Láng Hạ, Hà Nội', 'member', 'active', 5),
-('member3', 'member3@library.vn', 'member3', 'Võ Quang Hùng', '0932109876', '34 Nguyễn Trãi, Hà Nội', 'member', 'active', 5),
-('member4', 'member4@library.vn', 'member4', 'Đặng Hữu Tâm', '0921098765', '56 Phan Bội Châu, Hà Nội', 'member', 'inactive', 5);
-
--- Sách
-INSERT INTO books (title, isbn, author_id, publisher_id, category_id, description, total_copies, available_copies, publication_year, language, pages, price) VALUES
-('Truyện Kiều', '978-604-1', 1, 1, 1, 'Tác phẩm vĩ đại của Nguyễn Du, được xem là kiệt tác văn học Việt Nam', 5, 3, 1813, 'Vietnamese', 520, 85000),
-('Những đứa con lưu vong', '978-604-2', 3, 2, 1, 'Tiểu thuyết nổi tiếng về cuộc sống của những người phụ nữ Việt Nam', 4, 2, 1991, 'Vietnamese', 398, 120000),
-('To Kill a Mockingbird', '978-0-06-1', 4, 5, 2, 'Tiểu thuyết kinh điển về công lý và nhân tính tại Mỹ', 3, 1, 1960, 'English', 324, 250000),
-('1984', '978-0-452-1', 5, 5, 2, 'Tác phẩm khoa học viễn tưởng kinh điển về một xã hội độc tài', 6, 4, 1949, 'English', 328, 280000),
-('Pride and Prejudice', '978-0-14-1', 6, 6, 2, 'Tiểu thuyết lãng mạn kinh điển của Jane Austen', 3, 2, 1813, 'English', 432, 220000),
-('Walter Isaacson: Steve Jobs', '978-1-4516-1', 7, 6, 4, 'Tiểu sử chi tiết về cuộc đời của Steve Jobs', 4, 3, 2011, 'English', 656, 350000),
-('The Tipping Point', '978-0-316-1', 8, 5, 4, 'Sách về cách những ý tưởng lây lan trong xã hội', 5, 4, 2000, 'English', 301, 240000),
-('Dạy con làm giàu', '978-604-3', 3, 3, 6, 'Sách hướng dẫn dạy con học kiến thức tài chính', 7, 5, 2019, 'Vietnamese', 312, 95000),
-('Tư duy phản biện', '978-604-4', 1, 1, 6, 'Sách hướng dẫn phát triển kỹ năng tư duy', 6, 4, 2020, 'Vietnamese', 284, 110000),
-('Lịch sử Việt Nam', '978-604-5', 2, 4, 5, 'Cuốn sách nói về lịch sử của dân tộc Việt Nam qua các thời kỳ', 3, 1, 2018, 'Vietnamese', 528, 280000);
-
--- Phiếu mượn
-INSERT INTO borrowings (user_id, book_id, librarian_id, borrow_date, due_date, return_date, status) VALUES
-(4, 1, 2, '2025-12-15', '2025-12-29', NULL, 'borrowed'),
-(4, 3, 2, '2025-12-10', '2025-12-24', '2025-12-23', 'returned'),
-(5, 2, 3, '2025-12-18', '2026-01-01', NULL, 'borrowed'),
-(5, 4, 3, '2025-12-20', '2026-01-03', NULL, 'borrowed'),
-(6, 5, 2, '2025-12-16', '2025-12-30', NULL, 'borrowed'),
-(6, 6, 3, '2025-12-12', '2025-12-26', '2025-12-28', 'returned'),
-(7, 7, 2, '2025-12-19', '2026-01-02', NULL, 'borrowed'),
-(4, 8, 3, '2025-12-22', '2026-01-05', NULL, 'borrowed');
-
--- Đặt trước sách
-INSERT INTO reservations (user_id, book_id, reservation_date, expiry_date, status) VALUES
-(5, 1, '2025-12-20', '2026-01-19', 'pending'),
-(6, 3, '2025-12-21', '2026-01-20', 'pending'),
-(7, 2, '2025-12-22', '2026-01-21', 'available'),
-(4, 4, '2025-12-18', '2026-01-17', 'pending');
-
--- Phạt
-INSERT INTO fines (user_id, borrowing_id, amount, reason, status) VALUES
-(6, 6, 15000, 'overdue', 'unpaid'),
-(4, 2, 10000, 'overdue', 'paid'),
-(5, 4, 25000, 'overdue', 'unpaid');
+  -- ================================
+  -- 11. ĐẶT TRƯỚC
+  -- ================================
+  INSERT INTO reservations (user_id, book_id, reservation_date) VALUES
+  (4, 1, '2024-01-05');

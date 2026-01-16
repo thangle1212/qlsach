@@ -56,11 +56,6 @@
                                                     <a href="index.php?controller=borrowing&action=viewLoanDetails&id=<?= $loan['id'] ?>" class="btn btn-sm btn-info">
                                                         <i class="fas fa-eye"></i> Xem
                                                     </a>
-                                                    <?php if ($loan['status'] === 'active'): ?>
-                                                        <a href="index.php?controller=borrowing&action=viewReturnForm&id=<?= $loan['id'] ?>" class="btn btn-sm btn-warning">
-                                                            <i class="fas fa-undo"></i> Trả sách
-                                                        </a>
-                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                             <?php endforeach; ?>

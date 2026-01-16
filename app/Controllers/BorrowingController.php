@@ -23,9 +23,6 @@ class BorrowingController extends BaseController {
         if ($this->permissionService->canAccessBorrowingManagement($_SESSION['role'])) {
             $activeLoans = $this->borrowService->getAllActiveLoans();
             $overdueLoans = $this->borrowService->getOverdueLoans();
-        } elseif ($_SESSION['role'] === 'member') {
-            $activeLoans = $this->borrowService->getUserActiveLoans($_SESSION['user_id']);
-            $overdueLoans = [];
         } else {
             $this->handleUnauthorized();
         }
@@ -68,6 +65,11 @@ class BorrowingController extends BaseController {
     }
 
     public function return() {
+        // Only allow admin and librarian to process returns
+        if (!$this->permissionService->canProcessReturns($_SESSION['role'])) {
+            $this->handleUnauthorized();
+        }
+
         $loanSlipId = $_GET['id'] ?? null;
         $loan = $this->validateAndGetLoan($loanSlipId, $this->borrowService);
 
@@ -88,9 +90,7 @@ class BorrowingController extends BaseController {
                 $returnItems[$item['id']] = $item['returnable_quantity'];
             }
 
-            $processingUserId = $this->permissionService->canProcessReturns($_SESSION['role'])
-                ? $_SESSION['user_id']
-                : null;
+            $processingUserId = $_SESSION['user_id']; // Only admin/librarian can access this, so use their ID
 
             $this->returnService->returnBooks($loanSlipId, $returnItems, $processingUserId);
             $this->handleRedirect("index.php?controller=borrowing", 'Trả sách thành công');
@@ -104,6 +104,11 @@ class BorrowingController extends BaseController {
     }
 
     public function processReturn() {
+        // Only allow admin and librarian to process returns
+        if (!$this->permissionService->canProcessReturns($_SESSION['role'])) {
+            $this->handleUnauthorized();
+        }
+
         $loanSlipId = $_POST['loan_slip_id'] ?? null;
         $returnItems = $_POST['return_items'] ?? [];
         $note = $_POST['note'] ?? null;
@@ -120,9 +125,7 @@ class BorrowingController extends BaseController {
         $this->checkPermission('canProcessReturnsForLoan', [$_SESSION['role'], $_SESSION['user_id'], $loan['user_id']]);
 
         try {
-            $processingUserId = $this->permissionService->canProcessReturns($_SESSION['role'])
-                ? $_SESSION['user_id']
-                : null;
+            $processingUserId = $_SESSION['user_id']; // Only admin/librarian can access this, so use their ID
 
             $this->returnService->returnBooks($loanSlipId, $returnItems, $processingUserId, $note);
             $this->handleRedirect("index.php?controller=borrowing", 'Trả sách thành công');
@@ -136,6 +139,11 @@ class BorrowingController extends BaseController {
     }
 
     public function viewReturnForm() {
+        // Only allow admin and librarian to view return form
+        if (!$this->permissionService->canProcessReturns($_SESSION['role'])) {
+            $this->handleUnauthorized();
+        }
+
         $loanSlipId = $_GET['id'] ?? null;
         $loan = $this->validateAndGetLoan($loanSlipId, $this->borrowService);
 

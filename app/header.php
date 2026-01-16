@@ -241,11 +241,13 @@ define('BASE_URL', '/qlsach/');
                                 </ul>
                             </li>
                         <?php endif; ?>
+                        <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'librarian'): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="index.php?controller=borrowing">
                                 <i class="fas fa-exchange-alt"></i> Quản lý mượn trả
                             </a>
                         </li>
+                        <?php endif; ?>
                         <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'librarian'): ?>
                             <li class="nav-item">
                                 <a class="nav-link" href="index.php?controller=borrowing&action=reservations">
