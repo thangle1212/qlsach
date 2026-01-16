@@ -66,10 +66,16 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="address" class="form-label">Địa chỉ</label>
                                     <input type="text" class="form-control" id="address" name="address" value="<?=$user['address'] ?? ''?>">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Mật khẩu mới</label>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Nhập mật khẩu mới (để trống nếu không thay đổi)">
                                 </div>
                             </div>
                         </div>

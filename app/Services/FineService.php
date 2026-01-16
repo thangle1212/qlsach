@@ -110,6 +110,15 @@ class FineService {
     }
 
     /**
+     * Delete a fine record
+     */
+    public function deleteFine($fineId) {
+        $sql = "DELETE FROM fines WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$fineId]);
+    }
+
+    /**
      * Calculate overdue fines for a specific loan
      */
     public function calculateOverdueFine($loanId) {

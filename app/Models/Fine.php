@@ -10,11 +10,10 @@ class Fine {
 
     public function getAll() {
         $stmt = $this->db->prepare("
-            SELECT f.*, u.full_name, b.title
+            SELECT f.*, u.full_name, ls.borrow_date, ls.due_date
             FROM fines f
             JOIN users u ON f.user_id = u.id
-            JOIN borrowings brw ON f.borrowing_id = brw.id
-            JOIN books b ON brw.book_id = b.id
+            JOIN loan_slips ls ON f.loan_id = ls.id
             ORDER BY f.created_at DESC
         ");
         $stmt->execute();
@@ -23,11 +22,10 @@ class Fine {
 
     public function getById($id) {
         $stmt = $this->db->prepare("
-            SELECT f.*, u.full_name, b.title
+            SELECT f.*, u.full_name, ls.borrow_date, ls.due_date
             FROM fines f
             JOIN users u ON f.user_id = u.id
-            JOIN borrowings brw ON f.borrowing_id = brw.id
-            JOIN books b ON brw.book_id = b.id
+            JOIN loan_slips ls ON f.loan_id = ls.id
             WHERE f.id = ?
         ");
         $stmt->execute([$id]);
@@ -36,10 +34,9 @@ class Fine {
 
     public function getByUserId($user_id) {
         $stmt = $this->db->prepare("
-            SELECT f.*, b.title, brw.borrow_date, brw.due_date, brw.return_date
+            SELECT f.*, ls.borrow_date, ls.due_date, ls.return_date
             FROM fines f
-            JOIN borrowings brw ON f.borrowing_id = brw.id
-            JOIN books b ON brw.book_id = b.id
+            JOIN loan_slips ls ON f.loan_id = ls.id
             WHERE f.user_id = ?
             ORDER BY f.created_at DESC
         ");
@@ -59,12 +56,12 @@ class Fine {
     public function create($data) {
         try {
             $stmt = $this->db->prepare(
-                "INSERT INTO fines (user_id, borrowing_id, amount, reason, status, notes) 
+                "INSERT INTO fines (user_id, loan_id, amount, reason, status, notes)
                  VALUES (?, ?, ?, ?, ?, ?)"
             );
             return $stmt->execute([
                 $data['user_id'],
-                $data['borrowing_id'],
+                $data['loan_id'],
                 $data['amount'],
                 $data['reason'] ?? 'overdue',
                 $data['status'] ?? 'unpaid',
@@ -107,11 +104,10 @@ class Fine {
 
     public function getOverdueFines() {
         $stmt = $this->db->prepare("
-            SELECT f.*, u.full_name, u.email, b.title
+            SELECT f.*, u.full_name, u.email, ls.borrow_date, ls.due_date
             FROM fines f
             JOIN users u ON f.user_id = u.id
-            JOIN borrowings brw ON f.borrowing_id = brw.id
-            JOIN books b ON brw.book_id = b.id
+            JOIN loan_slips ls ON f.loan_id = ls.id
             WHERE f.status = 'unpaid'
             ORDER BY f.created_at DESC
         ");

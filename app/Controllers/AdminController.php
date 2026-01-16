@@ -98,6 +98,20 @@ class AdminController
     public function updateUser()
     {
         $id = $_GET['id'];
+
+        // Handle password change if provided
+        if (!empty($_POST['password'])) {
+            // Update password
+            $userModel = new User();
+            $hashedPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            if (!$userModel->updatePassword($id, $hashedPassword)) {
+                $_SESSION['error'] = 'Cập nhật mật khẩu thất bại';
+                header("Location: index.php?controller=admin&action=editUser&id=$id");
+                exit;
+            }
+        }
+
+        // Update user info (excluding password fields)
         $data = [
             'username' => $_POST['username'],
             'email' => $_POST['email'],
@@ -153,6 +167,41 @@ class AdminController
         $overdueBorrowings = $this->getOverdueBorrowingsCount();
 
         require __DIR__ . '/../Views/admin/statistics.php';
+    }
+
+    public function fines()
+    {
+        $fineService = new \FineService();
+        $fines = $fineService->getAllFines();
+        require __DIR__ . '/../Views/admin/fines.php';
+    }
+
+    public function markFineAsPaid()
+    {
+        $fineId = $_GET['id'];
+        $fineService = new \FineService();
+
+        if ($fineService->markAsPaid($fineId)) {
+            $_SESSION['success'] = 'Đánh dấu phạt đã nộp thành công';
+        } else {
+            $_SESSION['error'] = 'Đánh dấu phạt đã nộp thất bại';
+        }
+
+        header("Location: index.php?controller=admin&action=fines");
+    }
+
+    public function deleteFine()
+    {
+        $fineId = $_GET['id'];
+        $fineService = new \FineService();
+
+        if ($fineService->deleteFine($fineId)) {
+            $_SESSION['success'] = 'Xóa khoản phạt thành công';
+        } else {
+            $_SESSION['error'] = 'Xóa khoản phạt thất bại';
+        }
+
+        header("Location: index.php?controller=admin&action=fines");
     }
 
     private function getActiveUsersCount()

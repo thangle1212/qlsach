@@ -202,6 +202,11 @@ define('BASE_URL', '/qlsach/');
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" href="index.php?controller=admin&action=fines">
+                                    <i class="fas fa-money-bill-wave"></i> Quản lý phạt
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="index.php?controller=settings&action=index">
                                     <i class="fas fa-cog"></i> Cài đặt
                                 </a>
