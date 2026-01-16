@@ -161,12 +161,18 @@ class AuthController {
             ];
 
             // Create new user
-            if ($this->user->create($data)) {
-                $_SESSION['success'] = 'Đăng ký thành công! Tài khoản của bạn đang chờ kích hoạt từ quản trị viên.';
-                header("Location: index.php?controller=auth&action=showLogin");
-                exit;
-            } else {
-                $_SESSION['error'] = 'Đăng ký thất bại. Vui lòng thử lại.';
+            try {
+                if ($this->user->create($data)) {
+                    $_SESSION['success'] = 'Đăng ký thành công! Tài khoản của bạn đang chờ kích hoạt từ quản trị viên.';
+                    header("Location: index.php?controller=auth&action=showLogin");
+                    exit;
+                } else {
+                    $_SESSION['error'] = 'Đăng ký thất bại. Vui lòng thử lại.';
+                    header("Location: index.php?controller=auth&action=showRegister");
+                    exit;
+                }
+            } catch (Exception $e) {
+                $_SESSION['error'] = $e->getMessage();
                 header("Location: index.php?controller=auth&action=showRegister");
                 exit;
             }

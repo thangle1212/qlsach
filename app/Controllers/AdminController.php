@@ -79,10 +79,16 @@ class AdminController
             'status' => $_POST['status']
         ];
 
-        if ((new User())->create($data)) {
-            $_SESSION['success'] = 'Tạo người dùng thành công';
-        } else {
-            $_SESSION['error'] = 'Tạo người dùng thất bại';
+        try {
+            if ((new User())->create($data)) {
+                $_SESSION['success'] = 'Tạo người dùng thành công';
+            } else {
+                $_SESSION['error'] = 'Tạo người dùng thất bại';
+            }
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            header("Location: index.php?controller=admin&action=createUser");
+            exit;
         }
 
         header("Location: index.php?controller=admin&action=users");

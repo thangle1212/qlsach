@@ -28,23 +28,36 @@ class User {
     }
 
     public function create($data) {
-        $sql = "
-            INSERT INTO users
-            (username, email, password_hash, full_name, phone, address, role, max_borrow_limit)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ";
+        try {
+            $sql = "
+                INSERT INTO users
+                (username, email, password_hash, full_name, phone, address, role, max_borrow_limit)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ";
 
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
-            $data['username'],
-            $data['email'],
-            $data['password'], // Lưu mật khẩu dưới dạng nguyên bản
-            $data['full_name'],
-            $data['phone'] ?? null,
-            $data['address'] ?? null,
-            $data['role'] ?? 'member',
-            $data['max_borrow_limit'] ?? 5
-        ]);
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                $data['username'],
+                $data['email'],
+                $data['password'], // Lưu mật khẩu dưới dạng nguyên bản
+                $data['full_name'],
+                $data['phone'] ?? null,
+                $data['address'] ?? null,
+                $data['role'] ?? 'member',
+                $data['max_borrow_limit'] ?? 5
+            ]);
+        } catch (PDOException $e) {
+            // Kiểm tra nếu lỗi là do trùng email
+            if ($e->getCode() == 23000 && strpos($e->getMessage(), 'Duplicate entry') !== false && strpos($e->getMessage(), 'email') !== false) {
+                throw new Exception('Email đã tồn tại trong hệ thống');
+            }
+            // Kiểm tra nếu lỗi là do trùng username
+            if ($e->getCode() == 23000 && strpos($e->getMessage(), 'Duplicate entry') !== false && strpos($e->getMessage(), 'username') !== false) {
+                throw new Exception('Tên đăng nhập đã tồn tại trong hệ thống');
+            }
+            // Nếu là lỗi khác, ném lại ngoại lệ
+            throw $e;
+        }
     }
 
     public function getAll() {
