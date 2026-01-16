@@ -82,16 +82,15 @@ class AdminController
         try {
             if ((new User())->create($data)) {
                 $_SESSION['success'] = 'Tạo người dùng thành công';
+                header("Location: index.php?controller=admin&action=users");
             } else {
                 $_SESSION['error'] = 'Tạo người dùng thất bại';
+                header("Location: index.php?controller=admin&action=users");
             }
         } catch (Exception $e) {
             $_SESSION['error'] = $e->getMessage();
             header("Location: index.php?controller=admin&action=createUser");
-            exit;
         }
-
-        header("Location: index.php?controller=admin&action=users");
     }
 
     public function editUser()

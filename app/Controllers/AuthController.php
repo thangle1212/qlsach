@@ -163,7 +163,7 @@ class AuthController {
             // Create new user
             try {
                 if ($this->user->create($data)) {
-                    $_SESSION['success'] = 'Đăng ký thành công! Tài khoản của bạn đang chờ kích hoạt từ quản trị viên.';
+                    $_SESSION['success'] = 'Đăng ký thành công! Tài khoản của bạn đang chờ kích activated từ quản trị viên.';
                     header("Location: index.php?controller=auth&action=showLogin");
                     exit;
                 } else {

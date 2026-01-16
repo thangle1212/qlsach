@@ -110,40 +110,40 @@
         <form method="post" action="index.php?controller=auth&action=register">
             <div class="form-group">
                 <label for="full_name">Họ và tên:</label>
-                <input type="text" id="full_name" name="full_name" required>
+                <input type="text" id="full_name" name="full_name" value="<?php echo isset($registerFormData['full_name']) ? htmlspecialchars($registerFormData['full_name']) : ''; ?>" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="username">Tên đăng nhập:</label>
-                <input type="text" id="username" name="username" required>
+                <input type="text" id="username" name="username" value="<?php echo isset($registerFormData['username']) ? htmlspecialchars($registerFormData['username']) : ''; ?>" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="email" value="<?php echo isset($registerFormData['email']) ? htmlspecialchars($registerFormData['email']) : ''; ?>" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="password">Mật khẩu:</label>
                 <input type="password" id="password" name="password" required minlength="6">
                 <small style="color: #666; display: block; margin-top: 3px;">Tối thiểu 6 ký tự</small>
             </div>
-            
+
             <div class="form-group">
                 <label for="confirm_password">Xác nhận mật khẩu:</label>
                 <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
             </div>
-            
+
             <div class="form-group">
                 <label for="phone">Số điện thoại (tùy chọn):</label>
-                <input type="text" id="phone" name="phone">
+                <input type="text" id="phone" name="phone" value="<?php echo isset($registerFormData['phone']) ? htmlspecialchars($registerFormData['phone']) : ''; ?>">
             </div>
-            
+
             <div class="form-group">
                 <label for="address">Địa chỉ (tùy chọn):</label>
-                <input type="text" id="address" name="address">
+                <input type="text" id="address" name="address" value="<?php echo isset($registerFormData['address']) ? htmlspecialchars($registerFormData['address']) : ''; ?>">
             </div>
-            
+
             <button type="submit">Đăng ký</button>
         </form>
         
