@@ -1,170 +1,282 @@
 <?php
-require_once __DIR__ . '/../Models/Borrowing.php';
+require_once __DIR__ . '/../Services/BorrowService.php';
+require_once __DIR__ . '/../Services/ReturnService.php';
+require_once __DIR__ . '/../Services/FineService.php';
 require_once __DIR__ . '/../Models/Book.php';
-require_once __DIR__ . '/../Models/User.php'; // Add User model
-require_once __DIR__ . '/../Models/Reservation.php'; // Add Reservation model
+require_once __DIR__ . '/../Models/User.php';
+require_once __DIR__ . '/../Models/Reservation.php';
+require_once __DIR__ . '/BaseController.php';
 
-class BorrowingController {
+class BorrowingController extends BaseController {
+    private $borrowService;
+    private $returnService;
+    private $fineService;
+
     public function __construct() {
-        $this->checkAuth();
-    }
-
-    private function checkAuth() {
-        if (!isset($_SESSION['user_id'])) {
-            header("Location: index.php?controller=auth&action=showLogin");
-            exit;
-        }
+        parent::__construct();
+        $this->borrowService = new BorrowService();
+        $this->returnService = new ReturnService();
+        $this->fineService = new FineService();
     }
 
     public function index() {
-        $borrowings = (new Borrowing())->getAll();
+        if ($this->permissionService->canAccessBorrowingManagement($_SESSION['role'])) {
+            $activeLoans = $this->borrowService->getAllActiveLoans();
+            $overdueLoans = $this->borrowService->getOverdueLoans();
+        } elseif ($_SESSION['role'] === 'member') {
+            $activeLoans = $this->borrowService->getUserActiveLoans($_SESSION['user_id']);
+            $overdueLoans = [];
+        } else {
+            $this->handleUnauthorized();
+        }
+
         require __DIR__ . '/../Views/borrowings/index.php';
     }
 
     public function create() {
-        // Only allow admin and librarian to create borrowings
-        if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'librarian') {
-            $_SESSION['error'] = 'Bạn không có quyền thực hiện hành động này';
-            header("Location: index.php?controller=borrowing");
-            exit;
-        }
-        
+        $this->checkPermission('canCreateBorrowings', [$_SESSION['role']]);
         $books = (new Book())->getAll();
-        $users = (new User())->getAll(); // Get all users to display in dropdown
+        $users = (new User())->getAll();
         require __DIR__ . '/../Views/borrowings/create.php';
     }
 
     public function store() {
-        // Only allow admin and librarian to create borrowings
-        if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'librarian') {
-            $_SESSION['error'] = 'Bạn không có quyền thực hiện hành động này';
-            header("Location: index.php?controller=borrowing");
-            exit;
-        }
+        $this->checkPermission('canCreateBorrowings', [$_SESSION['role']]);
         
-        (new Borrowing())->borrow(
-            $_POST['user_id'],
-            $_POST['book_id'],
-            $_POST['due_date'],
-            $_SESSION['user_id'] // Pass the librarian ID who processed the borrowing
-        );
-        header("Location: index.php?controller=borrowing");
+        $userId = $_POST['user_id'] ?? null;
+        $bookIds = array_filter($_POST['book_ids'] ?? [$_POST['book_id'] ?? null], function($id) { return !empty($id); });
+        $dueDate = $_POST['due_date'] ?? null;
+
+        if (empty($userId) || empty($bookIds) || empty($dueDate)) {
+            $this->handleRedirect(
+                "index.php?controller=borrowing&action=create",
+                'Vui lòng điền đầy đủ thông tin',
+                'error'
+            );
+        }
+
+        try {
+            $this->borrowService->borrowBooks($userId, $bookIds, $dueDate, $_SESSION['user_id']);
+            $this->handleRedirect("index.php?controller=borrowing", 'Mượn sách thành công');
+        } catch (Exception $e) {
+            $this->handleRedirect(
+                "index.php?controller=borrowing",
+                'Mượn sách thất bại: ' . $e->getMessage(),
+                'error'
+            );
+        }
     }
 
     public function return() {
-        // Only allow admin and librarian to process returns
-        if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'librarian') {
-            $_SESSION['error'] = 'Bạn không có quyền thực hiện hành động này';
-            header("Location: index.php?controller=borrowing");
-            exit;
+        $loanSlipId = $_GET['id'] ?? null;
+        $loan = $this->validateAndGetLoan($loanSlipId, $this->borrowService);
+
+        $this->checkPermission('canProcessReturnsForLoan', [$_SESSION['role'], $_SESSION['user_id'], $loan['user_id']]);
+
+        try {
+            $returnableItems = $this->returnService->getReturnableItems($loanSlipId);
+            if (empty($returnableItems)) {
+                $this->handleRedirect(
+                    "index.php?controller=borrowing",
+                    'Không có sách nào cần trả cho phiếu mượn này',
+                    'error'
+                );
+            }
+
+            $returnItems = [];
+            foreach ($returnableItems as $item) {
+                $returnItems[$item['id']] = $item['returnable_quantity'];
+            }
+
+            $processingUserId = $this->permissionService->canProcessReturns($_SESSION['role'])
+                ? $_SESSION['user_id']
+                : null;
+
+            $this->returnService->returnBooks($loanSlipId, $returnItems, $processingUserId);
+            $this->handleRedirect("index.php?controller=borrowing", 'Trả sách thành công');
+        } catch (Exception $e) {
+            $this->handleRedirect(
+                "index.php?controller=borrowing",
+                'Trả sách thất bại: ' . $e->getMessage(),
+                'error'
+            );
+        }
+    }
+
+    public function processReturn() {
+        $loanSlipId = $_POST['loan_slip_id'] ?? null;
+        $returnItems = $_POST['return_items'] ?? [];
+        $note = $_POST['note'] ?? null;
+
+        if (!$loanSlipId || empty($returnItems)) {
+            $this->handleRedirect(
+                "index.php?controller=borrowing",
+                'Thông tin trả sách không đầy đủ',
+                'error'
+            );
         }
 
-        (new Borrowing())->returnBook($_GET['id']);
-        header("Location: index.php?controller=borrowing");
+        $loan = $this->validateAndGetLoan($loanSlipId, $this->borrowService);
+        $this->checkPermission('canProcessReturnsForLoan', [$_SESSION['role'], $_SESSION['user_id'], $loan['user_id']]);
+
+        try {
+            $processingUserId = $this->permissionService->canProcessReturns($_SESSION['role'])
+                ? $_SESSION['user_id']
+                : null;
+
+            $this->returnService->returnBooks($loanSlipId, $returnItems, $processingUserId, $note);
+            $this->handleRedirect("index.php?controller=borrowing", 'Trả sách thành công');
+        } catch (Exception $e) {
+            $this->handleRedirect(
+                "index.php?controller=borrowing",
+                'Trả sách thất bại: ' . $e->getMessage(),
+                'error'
+            );
+        }
+    }
+
+    public function viewReturnForm() {
+        $loanSlipId = $_GET['id'] ?? null;
+        $loan = $this->validateAndGetLoan($loanSlipId, $this->borrowService);
+
+        $this->checkPermission('canProcessReturnsForLoan', [$_SESSION['role'], $_SESSION['user_id'], $loan['user_id']]);
+
+        $returnableItems = $this->returnService->getReturnableItems($loanSlipId);
+        $loanDetails = $this->borrowService->getLoanDetails($loanSlipId);
+        $loanSlip = $this->borrowService->getLoanSlipById($loanSlipId);
+
+        if (empty($returnableItems)) {
+            $this->handleRedirect(
+                "index.php?controller=borrowing",
+                'Không có sách nào cần trả cho phiếu mượn này',
+                'error'
+            );
+        }
+
+        require __DIR__ . '/../Views/borrowings/return_form.php';
     }
 
     public function renew() {
-        // Only allow admin and librarian to renew borrowings
-        if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'librarian') {
-            $_SESSION['error'] = 'Bạn không có quyền thực hiện hành động này';
-            header("Location: index.php?controller=borrowing");
-            exit;
-        }
+        $loanSlipId = $_GET['id'] ?? null;
+        $loan = $this->validateAndGetLoan($loanSlipId, $this->borrowService);
 
-        if ((new Borrowing())->renew($_GET['id'])) {
-            $_SESSION['success'] = 'Gia hạn mượn sách thành công';
-        } else {
-            $_SESSION['error'] = 'Gia hạn mượn sách thất bại';
-        }
+        $this->checkPermission('canRenewLoan', [$_SESSION['role'], $_SESSION['user_id'], $loan['user_id']]);
 
-        header("Location: index.php?controller=borrowing");
+        try {
+            $result = $this->borrowService->renewLoan($loanSlipId);
+            if ($result) {
+                $this->handleRedirect("index.php?controller=borrowing", 'Gia hạn mượn sách thành công');
+            } else {
+                $this->handleRedirect(
+                    "index.php?controller=borrowing",
+                    'Gia hạn mượn sách thất bại',
+                    'error'
+                );
+            }
+        } catch (Exception $e) {
+            $this->handleRedirect(
+                "index.php?controller=borrowing",
+                'Gia hạn mượn sách thất bại: ' . $e->getMessage(),
+                'error'
+            );
+        }
     }
 
     public function viewMember() {
-        // Only allow admin and librarian to view member information
-        if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'librarian') {
-            $_SESSION['error'] = 'Bạn không có quyền thực hiện hành động này';
-            header("Location: index.php?controller=borrowing");
-            exit;
+        $this->checkPermission('canViewMemberInfo', [$_SESSION['role']]);
+
+        $user_id = $_GET['user_id'] ?? null;
+        if (!$user_id) {
+            $this->handleRedirect(
+                "index.php?controller=borrowing",
+                'ID người dùng không hợp lệ',
+                'error'
+            );
         }
 
-        $user_id = $_GET['user_id'];
         $user = (new User())->getById($user_id);
-        $userBorrowings = (new Borrowing())->getByUserId($user_id);
+        $userActiveLoans = $this->borrowService->getUserActiveLoans($user_id);
+        $userFines = $this->fineService->getUserFines($user_id);
 
         require __DIR__ . '/../Views/borrowings/member_info.php';
     }
 
     public function reservations() {
-        // Only allow admin and librarian to manage reservations
-        if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'librarian') {
-            $_SESSION['error'] = 'Bạn không có quyền thực hiện hành động này';
-            header("Location: index.php?controller=borrowing");
-            exit;
-        }
-
+        $this->checkPermission('canManageReservations', [$_SESSION['role']]);
         $reservations = (new Reservation())->getAll();
         require __DIR__ . '/../Views/borrowings/reservations.php';
     }
 
     public function approveReservation() {
-        // Only allow admin and librarian to approve reservations
-        if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'librarian') {
-            $_SESSION['error'] = 'Bạn không có quyền thực hiện hành động này';
-            header("Location: index.php?controller=borrowing");
-            exit;
-        }
+        $this->checkPermission('canManageReservations', [$_SESSION['role']]);
 
         $reservation_id = $_GET['id'];
         $reservation = (new Reservation())->getById($reservation_id);
 
         if (!$reservation) {
-            $_SESSION['error'] = 'Đặt trước không tồn tại';
-            header("Location: index.php?controller=borrowing&action=reservations");
-            exit;
+            $this->handleRedirect(
+                "index.php?controller=borrowing&action=reservations",
+                'Đặt trước không tồn tại',
+                'error'
+            );
         }
 
-        // Update reservation status to 'available'
-        $result = (new Reservation())->update($reservation_id, [
-            'status' => 'available',
-            'priority' => 1
-        ]);
+        $result = (new Reservation())->update($reservation_id, ['status' => 'available']);
 
         if ($result) {
-            $_SESSION['success'] = 'Duyệt đặt trước thành công';
+            $this->handleRedirect(
+                "index.php?controller=borrowing&action=reservations",
+                'Duyệt đặt trước thành công'
+            );
         } else {
-            $_SESSION['error'] = 'Duyệt đặt trước thất bại';
+            $this->handleRedirect(
+                "index.php?controller=borrowing&action=reservations",
+                'Duyệt đặt trước thất bại',
+                'error'
+            );
         }
-
-        header("Location: index.php?controller=borrowing&action=reservations");
     }
 
     public function rejectReservation() {
-        // Only allow admin and librarian to reject reservations
-        if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'librarian') {
-            $_SESSION['error'] = 'Bạn không có quyền thực hiện hành động này';
-            header("Location: index.php?controller=borrowing");
-            exit;
-        }
+        $this->checkPermission('canManageReservations', [$_SESSION['role']]);
 
         $reservation_id = $_GET['id'];
         $reservation = (new Reservation())->getById($reservation_id);
 
         if (!$reservation) {
-            $_SESSION['error'] = 'Đặt trước không tồn tại';
-            header("Location: index.php?controller=borrowing&action=reservations");
-            exit;
+            $this->handleRedirect(
+                "index.php?controller=borrowing&action=reservations",
+                'Đặt trước không tồn tại',
+                'error'
+            );
         }
 
-        // Cancel the reservation
         $result = (new Reservation())->cancel($reservation_id);
 
         if ($result) {
-            $_SESSION['success'] = 'Từ chối đặt trước thành công';
+            $this->handleRedirect(
+                "index.php?controller=borrowing&action=reservations",
+                'Từ chối đặt trước thành công'
+            );
         } else {
-            $_SESSION['error'] = 'Từ chối đặt trước thất bại';
+            $this->handleRedirect(
+                "index.php?controller=borrowing&action=reservations",
+                'Từ chối đặt trước thất bại',
+                'error'
+            );
         }
+    }
 
-        header("Location: index.php?controller=borrowing&action=reservations");
+    public function viewLoanDetails() {
+        $loanSlipId = $_GET['id'] ?? null;
+        $loan = $this->validateAndGetLoan($loanSlipId, $this->borrowService);
+
+        $this->checkPermission('canViewLoanDetails', [$_SESSION['role'], $_SESSION['user_id'], $loan['user_id']]);
+
+        $loanDetails = $this->borrowService->getLoanDetails($loanSlipId);
+        $loanSlip = $this->borrowService->getLoanSlipById($loanSlipId);
+        $returnHistory = $this->returnService->getReturnDetails($loanSlipId);
+
+        require __DIR__ . '/../Views/borrowings/loan_details.php';
     }
 }

@@ -85,8 +85,9 @@ class Book {
        XOÁ SÁCH (CHECK NGHIỆP VỤ)
     ====================== */
     public function canDelete($id) {
+        // Check if book is currently borrowed (using new schema)
         $stmt = $this->db->prepare("
-            SELECT COUNT(*) FROM borrowings
+            SELECT COUNT(*) FROM loan_items
             WHERE book_id=? AND status='borrowed'
         ");
         $stmt->execute([$id]);

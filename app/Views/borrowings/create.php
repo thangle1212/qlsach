@@ -24,8 +24,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="book_id" class="form-label">Sách</label>
-                            <select class="form-select" id="book_id" name="book_id" required>
+                            <label for="book_ids" class="form-label">Sách (Chọn nhiều sách nếu cần)</label>
+                            <select class="form-select" id="book_ids" name="book_ids[]" multiple required>
                                 <?php foreach ($books as $b): ?>
                                     <?php if ($b['available_copies'] > 0): ?>
                                         <option value="<?= $b['id'] ?>">
@@ -34,6 +34,7 @@
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </select>
+                            <small class="form-text text-muted">Giữ phím Ctrl để chọn nhiều sách</small>
                         </div>
 
                         <div class="mb-3">
@@ -55,5 +56,17 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default due date to 14 days from today
+    const today = new Date();
+    const dueDate = new Date(today);
+    dueDate.setDate(dueDate.getDate() + 14);
+
+    const formattedDate = dueDate.toISOString().split('T')[0];
+    document.getElementById('due_date').value = formattedDate;
+});
+</script>
 
 <?php include __DIR__ . '/../../footer.php'; ?>

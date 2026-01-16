@@ -3,6 +3,8 @@ require_once __DIR__ . '/../Models/User.php';
 require_once __DIR__ . '/../Core/Database.php';
 require_once __DIR__ . '/../Models/Book.php';
 require_once __DIR__ . '/../Models/Borrowing.php';
+require_once __DIR__ . '/../Services/BorrowService.php';
+require_once __DIR__ . '/../Services/FineService.php';
 
 class AdminController
 {
@@ -41,10 +43,10 @@ class AdminController
         $availableBooks = $this->getAvailableBooksCount();
         $borrowedBooks = $totalBooks - $availableBooks;
 
-        // Borrowing statistics
-        $totalBorrowings = count($borrowingModel->getAll());
+        // Borrowing statistics using new schema
+        $totalBorrowings = $this->getTotalBorrowingsCount();
         $activeBorrowings = $this->getActiveBorrowingsCount();
-        $overdueBorrowings = count($borrowingModel->getOverdueBorrowings());
+        $overdueBorrowings = $this->getOverdueBorrowingsCount();
 
         // Statistics for charts
         $topBorrowedBooks = $this->getTopBorrowedBooks();
@@ -145,10 +147,10 @@ class AdminController
         $availableBooks = $this->getAvailableBooksCount();
         $borrowedBooks = $totalBooks - $availableBooks;
 
-        // Borrowing statistics
-        $totalBorrowings = count($borrowingModel->getAll());
+        // Borrowing statistics using new schema
+        $totalBorrowings = $this->getTotalBorrowingsCount();
         $activeBorrowings = $this->getActiveBorrowingsCount();
-        $overdueBorrowings = count($borrowingModel->getOverdueBorrowings());
+        $overdueBorrowings = $this->getOverdueBorrowingsCount();
 
         require __DIR__ . '/../Views/admin/statistics.php';
     }
@@ -172,7 +174,7 @@ class AdminController
     private function getActiveBorrowingsCount()
     {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT COUNT(*) FROM borrowings WHERE status = 'borrowed'");
+        $stmt = $db->prepare("SELECT COUNT(*) FROM loan_slips WHERE status = 'active'");
         $stmt->execute();
         return $stmt->fetchColumn();
     }
@@ -181,9 +183,11 @@ class AdminController
     {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT b.title, COUNT(br.id) as borrow_count
+            SELECT b.title, COUNT(li.id) as borrow_count
             FROM books b
-            LEFT JOIN borrowings br ON b.id = br.book_id
+            LEFT JOIN loan_items li ON b.id = li.book_id
+            LEFT JOIN loan_slips ls ON li.loan_id = ls.id
+            WHERE ls.id IS NOT NULL  -- Only count books that have been borrowed
             GROUP BY b.id, b.title
             ORDER BY borrow_count DESC
             LIMIT 10
@@ -196,14 +200,30 @@ class AdminController
     {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT u.full_name, COUNT(br.id) as borrow_count
+            SELECT u.full_name, COUNT(ls.id) as borrow_count
             FROM users u
-            LEFT JOIN borrowings br ON u.id = br.user_id
+            LEFT JOIN loan_slips ls ON u.id = ls.user_id
             GROUP BY u.id, u.full_name
             ORDER BY borrow_count DESC
             LIMIT 10
         ");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function getTotalBorrowingsCount()
+    {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM loan_slips");
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+
+    private function getOverdueBorrowingsCount()
+    {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM loan_slips WHERE status = 'active' AND due_date < CURDATE()");
+        $stmt->execute();
+        return $stmt->fetchColumn();
     }
 }

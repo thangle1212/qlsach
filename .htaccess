@@ -1,5 +1,5 @@
 RewriteEngine On
-RewriteBase /qlsach/
+RewriteBase /qlsach/qlsach-main/
 
 # Redirect root URL to login page
 RewriteRule ^$ index.php?controller=auth&action=showLogin [QSA,L]

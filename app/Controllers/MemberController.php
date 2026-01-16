@@ -4,6 +4,9 @@ require_once __DIR__ . '/../Models/Book.php';
 require_once __DIR__ . '/../Models/Borrowing.php';
 require_once __DIR__ . '/../Models/Reservation.php';
 require_once __DIR__ . '/../Models/Fine.php';
+require_once __DIR__ . '/../Services/BorrowService.php';
+require_once __DIR__ . '/../Services/ReturnService.php';
+require_once __DIR__ . '/../Services/FineService.php';
 
 class MemberController {
     private $user;
@@ -39,22 +42,27 @@ class MemberController {
         $user_id = $_SESSION['user_id'];
         $user = $this->user->getById($user_id);
 
-        // Get current borrowings
-        $borrowings = $this->borrowing->getByUserId($user_id);
+        // Get current borrowings using new service
+        $borrowService = new \BorrowService();
+        $activeLoans = $borrowService->getUserActiveLoans($user_id);
+
+        // Get detailed loan information
+        $loanDetails = [];
+        if (!empty($activeLoans)) {
+            foreach ($activeLoans as $loan) {
+                $loanDetails[$loan['id']] = $borrowService->getLoanDetails($loan['id']);
+            }
+        }
 
         // Get reservations
         $reservations = $this->reservation->getByUserId($user_id);
 
-        // Get fines
-        $fines = $this->fine->getByUserId($user_id);
+        // Get fines using new service
+        $fineService = new \FineService();
+        $fines = $fineService->getUserFines($user_id);
 
         // Calculate total unpaid fines
-        $totalUnpaidFines = 0;
-        foreach ($fines as $fine) {
-            if ($fine['status'] === 'unpaid') {
-                $totalUnpaidFines += $fine['amount'];
-            }
-        }
+        $totalUnpaidFines = $fineService->getTotalUnpaidFines($user_id);
 
         require __DIR__ . '/../Views/member/dashboard.php';
     }
@@ -131,7 +139,22 @@ class MemberController {
     // View borrowing history
     public function borrowingHistory() {
         $user_id = $_SESSION['user_id'];
-        $borrowings = $this->borrowing->getByUserId($user_id);
+        $borrowService = new \BorrowService();
+        $loans = $borrowService->getUserActiveLoans($user_id);
+
+        // Get all loans (both active and completed)
+        $db = \Database::getInstance();
+        $sql = "SELECT ls.*, u.full_name as user_name, lib.full_name as librarian_name
+                FROM loan_slips ls
+                LEFT JOIN users u ON ls.user_id = u.id
+                LEFT JOIN users lib ON ls.librarian_id = lib.id
+                WHERE ls.user_id = ?
+                ORDER BY ls.created_at DESC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute([$user_id]);
+        $allLoans = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         require __DIR__ . '/../Views/member/borrowing_history.php';
     }
 
@@ -151,14 +174,22 @@ class MemberController {
 
     // Borrow book
     public function borrow() {
-        if (!isset($_POST['book_id']) || empty($_POST['book_id'])) {
+        $book_id = null;
+
+        // Check if book_id is in POST or GET
+        if (isset($_POST['book_id']) && !empty($_POST['book_id'])) {
+            $book_id = intval($_POST['book_id']);
+        } elseif (isset($_GET['book_id']) && !empty($_GET['book_id'])) {
+            $book_id = intval($_GET['book_id']);
+        }
+
+        if (!$book_id) {
             $_SESSION['error'] = 'ID sách không hợp lệ';
             header("Location: index.php?controller=book");
             exit;
         }
 
         $user_id = $_SESSION['user_id'];
-        $book_id = intval($_POST['book_id']);
 
         // Check if book exists
         $book = $this->book->getById($book_id);
@@ -176,7 +207,7 @@ class MemberController {
         }
 
         // Check if user already borrowed this book (not returned yet)
-        $exists = $this->borrowing->checkActiveBorrow($user_id, $book_id);
+        $exists = $this->checkActiveBorrowForMember($user_id, $book_id);
         if ($exists) {
             $_SESSION['error'] = 'Bạn đã mượn sách này rồi';
             header("Location: index.php?controller=book");
@@ -185,12 +216,91 @@ class MemberController {
 
         // Get max borrow days from settings
         $max_days = 14; // Default
+        try {
+            $settings = new \Settings();
+            $max_days = (int)$settings->get('max_borrow_days', 14);
+        } catch (Exception $e) {
+            // Use default if settings table doesn't exist
+        }
 
         $due_date = date('Y-m-d', strtotime("+$max_days days"));
 
         try {
-            // Use the borrow method which handles the transaction internally
-            $this->borrowing->borrow($user_id, $book_id, $due_date, null); // librarian_id is null for member-initiated borrowing
+            // Use the new BorrowService
+            $borrowService = new \BorrowService();
+            $borrowService->borrowBooks($user_id, [$book_id], $due_date, null); // librarian_id is null for member-initiated borrowing
+            $_SESSION['success'] = 'Mượn sách thành công';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Mượn sách thất bại: ' . $e->getMessage();
+        }
+
+        header("Location: index.php?controller=member&action=dashboard");
+        exit;
+    }
+
+    // Method to allow borrowing multiple books from the book list
+    public function borrowMultiple() {
+        if (!isset($_POST['book_ids']) || empty($_POST['book_ids'])) {
+            $_SESSION['error'] = 'Chưa chọn sách để mượn';
+            header("Location: index.php?controller=book");
+            exit;
+        }
+
+        $user_id = $_SESSION['user_id'];
+        $book_ids = array_filter(array_map('intval', $_POST['book_ids'])); // Convert to integers and remove zeros
+
+        if (empty($book_ids)) {
+            $_SESSION['error'] = 'Chưa chọn sách để mượn';
+            header("Location: index.php?controller=book");
+            exit;
+        }
+
+        // Validate each book
+        foreach ($book_ids as $book_id) {
+            if ($book_id <= 0) {
+                $_SESSION['error'] = 'ID sách không hợp lệ';
+                header("Location: index.php?controller=book");
+                exit;
+            }
+
+            $book = $this->book->getById($book_id);
+            if (!$book) {
+                $_SESSION['error'] = "Sách ID {$book_id} không tồn tại";
+                header("Location: index.php?controller=book");
+                exit;
+            }
+
+            // Check if book is available
+            if ($book['available_copies'] <= 0) {
+                $_SESSION['error'] = "Sách '{$book['title']}' không còn sẵn có";
+                header("Location: index.php?controller=book");
+                exit;
+            }
+
+            // Check if user already borrowed this book (not returned yet)
+            $exists = $this->checkActiveBorrowForMember($user_id, $book_id);
+            if ($exists) {
+                $_SESSION['error'] = "Bạn đã mượn sách '{$book['title']}' rồi";
+                header("Location: index.php?controller=book");
+                exit;
+            }
+        }
+
+        // Get max borrow days from settings
+        $max_days = 14; // Default
+        try {
+            $settings = new \Settings();
+            $max_days = (int)$settings->get('max_borrow_days', 14);
+        } catch (Exception $e) {
+            // Use default if settings table doesn't exist
+        }
+
+        $due_date = date('Y-m-d', strtotime("+$max_days days"));
+
+        try {
+            // Use the new BorrowService
+            $borrowService = new \BorrowService();
+            $borrowService->borrowBooks($user_id, $book_ids, $due_date, null); // librarian_id is null for member-initiated borrowing
             $_SESSION['success'] = 'Mượn sách thành công';
         } catch (Exception $e) {
             $_SESSION['error'] = 'Mượn sách thất bại: ' . $e->getMessage();
@@ -291,7 +401,9 @@ class MemberController {
     // View fines
     public function fines() {
         $user_id = $_SESSION['user_id'];
-        $fines = $this->fine->getByUserId($user_id);
+        $fineService = new \FineService();
+        $fines = $fineService->getUnpaidFines($user_id);
+        $totalUnpaid = $fineService->getTotalUnpaidFines($user_id);
         require __DIR__ . '/../Views/member/fines.php';
     }
 
@@ -339,5 +451,21 @@ class MemberController {
         }
 
         return $errors;
+    }
+
+    /**
+     * Check if user is actively borrowing a specific book
+     */
+    private function checkActiveBorrowForMember($userId, $bookId) {
+        $db = \Database::getInstance();
+
+        $sql = "SELECT COUNT(*) FROM loan_items li
+                JOIN loan_slips ls ON li.loan_id = ls.id
+                WHERE ls.user_id = ? AND li.book_id = ? AND li.status = 'borrowed'";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute([$userId, $bookId]);
+
+        return $stmt->fetchColumn() > 0;
     }
 }

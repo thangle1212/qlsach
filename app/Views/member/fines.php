@@ -7,20 +7,9 @@
         </div>
     </div>
 
-    <?php
-    $total_unpaid = 0;
-    if (!empty($fines)) {
-        foreach ($fines as $f) {
-            if ($f['status'] == 'unpaid') {
-                $total_unpaid += $f['amount'];
-            }
-        }
-    }
-    ?>
-
-    <?php if ($total_unpaid > 0): ?>
+    <?php if ($totalUnpaid > 0): ?>
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <strong>Bạn có <?= number_format($total_unpaid) ?> VNĐ phạt chưa trả</strong>
+            <strong>Bạn có <?= number_format($totalUnpaid) ?> VNĐ phạt chưa trả</strong>
             <br>Vui lòng liên hệ thư viện để thanh toán.
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
@@ -35,7 +24,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>ID</th>
-                                    <th>Sách</th>
+                                    <th>Mã phiếu mượn</th>
                                     <th>Lý do phạt</th>
                                     <th>Số tiền</th>
                                     <th>Trạng thái</th>
@@ -51,7 +40,7 @@
                                     <?php foreach ($fines as $f): ?>
                                         <tr>
                                             <td><?= $f['id'] ?></td>
-                                            <td><?= htmlspecialchars($f['title'] ?? 'N/A') ?></td>
+                                            <td>#<?= $f['loan_id'] ?></td>
                                             <td>
                                                 <?php
                                                     $reasons = [

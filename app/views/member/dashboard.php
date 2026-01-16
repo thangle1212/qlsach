@@ -28,7 +28,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="card-subtitle mb-2">Sách đang mượn</h6>
-                            <h4 class="card-title"><?= count($borrowings) ?></h4>
+                            <h4 class="card-title"><?= count($activeLoans) ?></h4>
                         </div>
                         <i class="fas fa-book fa-3x"></i>
                     </div>
@@ -58,43 +58,62 @@
                     <h5 class="card-title mb-0"><i class="fas fa-book-reader"></i> Sách đang mượn</h5>
                 </div>
                 <div class="card-body">
-                    <?php if (!empty($borrowings)): ?>
+                    <?php if (!empty($activeLoans)): ?>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>Mã phiếu</th>
                                         <th>Tên sách</th>
                                         <th>Ngày mượn</th>
                                         <th>Ngày trả</th>
                                         <th>Trạng thái</th>
+                                        <th>Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($borrowings as $b): ?>
+                                    <?php foreach ($activeLoans as $loan): ?>
+                                        <?php if (isset($loanDetails[$loan['id']]) && !empty($loanDetails[$loan['id']])): ?>
+                                            <?php foreach ($loanDetails[$loan['id']] as $detail): ?>
                                         <tr>
-                                            <td><?= $b['id'] ?></td>
-                                            <td><?= htmlspecialchars($b['title']) ?></td>
-                                            <td><?= $b['borrow_date'] ?></td>
-                                            <td><?= $b['due_date'] ?></td>
+                                            <td>#<?= $loan['id'] ?></td>
+                                            <td><?= htmlspecialchars($detail['title']) ?></td>
+                                            <td><?= $loan['borrow_date'] ?></td>
+                                            <td><?= $loan['due_date'] ?></td>
                                             <td>
                                                 <?php
-                                                switch ($b['status']) {
-                                                    case 'borrowed':
+                                                switch ($loan['status']) {
+                                                    case 'active':
                                                         echo '<span class="badge bg-warning">Đang mượn</span>';
                                                         break;
-                                                    case 'returned':
+                                                    case 'completed':
                                                         echo '<span class="badge bg-success">Đã trả</span>';
                                                         break;
                                                     case 'overdue':
                                                         echo '<span class="badge bg-danger">Quá hạn</span>';
                                                         break;
                                                     default:
-                                                        echo '<span class="badge bg-secondary">' . $b['status'] . '</span>';
+                                                        echo '<span class="badge bg-secondary">' . $loan['status'] . '</span>';
                                                 }
                                                 ?>
                                             </td>
+                                            <td>
+                                                <a href="index.php?controller=borrowing&action=viewLoanDetails&id=<?= $loan['id'] ?>" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i> Xem
+                                                </a>
+                                                <?php if ($loan['status'] === 'active'): ?>
+                                                    <a href="index.php?controller=borrowing&action=viewReturnForm&id=<?= $loan['id'] ?>" class="btn btn-sm btn-warning">
+                                                        <i class="fas fa-undo"></i> Trả sách
+                                                    </a>
+                                                <?php endif; ?>
+                                            </td>
                                         </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" class="text-center">Không có sách nào trong phiếu mượn này</td>
+                                        </tr>
+                                    <?php endif; ?>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>

@@ -15,39 +15,61 @@
                         <table class="table table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Mã phiếu</th>
                                     <th>Sách</th>
                                     <th>Ngày mượn</th>
                                     <th>Ngày hết hạn</th>
-                                    <th>Ngày trả</th>
                                     <th>Trạng thái</th>
+                                    <th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if (empty($borrowings)): ?>
+                                <?php if (empty($allLoans)): ?>
                                     <tr>
                                         <td colspan="6" class="text-center text-muted">Bạn chưa mượn sách nào</td>
                                     </tr>
                                 <?php else: ?>
-                                    <?php foreach ($borrowings as $b): ?>
-                                        <tr>
-                                            <td><?= $b['id'] ?></td>
-                                            <td><?= htmlspecialchars($b['title']) ?></td>
-                                            <td><?= $b['borrow_date'] ?></td>
-                                            <td><?= $b['due_date'] ?></td>
-                                            <td><?= $b['return_date'] ?? 'Chưa trả' ?></td>
-                                            <td>
-                                                <?php if ($b['status'] == 'returned'): ?>
-                                                    <span class="badge bg-success">Đã trả</span>
-                                                <?php elseif ($b['status'] == 'borrowed'): ?>
-                                                    <span class="badge bg-warning">Đang mượn</span>
-                                                <?php elseif ($b['status'] == 'overdue'): ?>
-                                                    <span class="badge bg-danger">Quá hạn</span>
-                                                <?php else: ?>
-                                                    <span class="badge bg-secondary"><?= $b['status'] ?></span>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
+                                    <?php
+                                    $borrowService = new \BorrowService();
+                                    foreach ($allLoans as $loan):
+                                        $loanDetails = $borrowService->getLoanDetails($loan['id']);
+                                    ?>
+                                        <?php if (!empty($loanDetails)): ?>
+                                            <?php foreach ($loanDetails as $detail): ?>
+                                            <tr>
+                                                <td>#<?= $loan['id'] ?></td>
+                                                <td><?= htmlspecialchars($detail['title']) ?></td>
+                                                <td><?= $loan['borrow_date'] ?></td>
+                                                <td><?= $loan['due_date'] ?></td>
+                                                <td>
+                                                    <?php if ($loan['status'] == 'completed'): ?>
+                                                        <span class="badge bg-success">Đã trả</span>
+                                                    <?php elseif ($loan['status'] == 'active'): ?>
+                                                        <span class="badge bg-warning">Đang mượn</span>
+                                                    <?php elseif ($loan['status'] == 'overdue'): ?>
+                                                        <span class="badge bg-danger">Quá hạn</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary"><?= $loan['status'] ?></span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <a href="index.php?controller=borrowing&action=viewLoanDetails&id=<?= $loan['id'] ?>" class="btn btn-sm btn-info">
+                                                        <i class="fas fa-eye"></i> Xem
+                                                    </a>
+                                                    <?php if ($loan['status'] === 'active'): ?>
+                                                        <a href="index.php?controller=borrowing&action=viewReturnForm&id=<?= $loan['id'] ?>" class="btn btn-sm btn-warning">
+                                                            <i class="fas fa-undo"></i> Trả sách
+                                                        </a>
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr>
+                                                <td>#<?= $loan['id'] ?></td>
+                                                <td colspan="5" class="text-center">Không có sách nào trong phiếu mượn này</td>
+                                            </tr>
+                                        <?php endif; ?>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>

@@ -19,9 +19,15 @@
     </div>
 
     <div class="table-responsive">
+        <?php if ($_SESSION['role'] === 'member' && !empty($books)): ?>
+        <form method="post" action="index.php?controller=member&action=borrowMultiple" class="mt-3">
+        <?php endif; ?>
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
+                    <?php if ($_SESSION['role'] === 'member'): ?>
+                    <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
+                    <?php endif; ?>
                     <th>ID</th>
                     <th>Tên sách</th>
                     <th>Tác giả</th>
@@ -35,6 +41,13 @@
             <tbody>
                 <?php foreach ($books as $b): ?>
                 <tr>
+                    <?php if ($_SESSION['role'] === 'member'): ?>
+                    <td>
+                        <?php if ($b['available_copies'] > 0): ?>
+                        <input type="checkbox" name="book_ids[]" value="<?= $b['id'] ?>" class="book-checkbox">
+                        <?php endif; ?>
+                    </td>
+                    <?php endif; ?>
                     <td><?= $b['id'] ?></td>
                     <td><?= htmlspecialchars($b['title']) ?></td>
                     <td><?= htmlspecialchars($b['author_name'] ?? 'N/A') ?></td>
@@ -60,12 +73,9 @@
                                 <i class="fas fa-info-circle"></i> Chi tiết
                             </a>
                             <?php if ($b['available_copies'] > 0): ?>
-                                <form method="post" action="index.php?controller=member&action=borrow" style="display: inline;">
-                                    <input type="hidden" name="book_id" value="<?= $b['id'] ?>">
-                                    <button type="submit" class="btn btn-sm btn-success">
-                                        <i class="fas fa-book"></i> Mượn sách
-                                    </button>
-                                </form>
+                                <a href="index.php?controller=member&action=borrow&book_id=<?= $b['id'] ?>" class="btn btn-sm btn-success me-1">
+                                    <i class="fas fa-book"></i> Mượn đơn
+                                </a>
                             <?php else: ?>
                                 <form method="post" action="index.php?controller=member&action=reserve" style="display: inline;">
                                     <input type="hidden" name="book_id" value="<?= $b['id'] ?>">
@@ -80,7 +90,44 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <?php if ($_SESSION['role'] === 'member' && !empty($books)): ?>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-book"></i> Mượn các sách đã chọn
+                </button>
+            </div>
+            <div>
+                <small class="text-muted">Chỉ những sách còn mới có thể chọn</small>
+            </div>
+        </div>
+        </form>
+        <?php endif; ?>
     </div>
+
+    <script>
+    function toggleSelectAll(source) {
+        const checkboxes = document.querySelectorAll('.book-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = source.checked;
+        });
+    }
+
+    // Validate before submitting the multiple borrow form
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form[action*="borrowMultiple"]');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const selectedBooks = document.querySelectorAll('input[name="book_ids[]"]:checked');
+                if (selectedBooks.length === 0) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn ít nhất một cuốn sách để mượn.');
+                    return false;
+                }
+            });
+        }
+    });
+    </script>
 </div>
 
 <?php include __DIR__ . '/../../footer.php'; ?>

@@ -5,8 +5,11 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Quản lý mượn – trả</h2>
-                
+                <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'librarian'): ?>
+                <a href="index.php?controller=borrowing&action=create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Tạo phiếu mượn
                 </a>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -21,47 +24,117 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Người mượn</th>
-                                    <th>Sách</th>
+                                    <th>Người xử lý</th>
                                     <th>Ngày mượn</th>
-                                    <th>Ngày trả</th>
+                                    <th>Ngày hẹn trả</th>
                                     <th>Trạng thái</th>
-                                    
+                                    <th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($borrowings as $b): ?>
+                                <?php foreach ($activeLoans as $loan): ?>
                                 <tr>
-                                    <td><?= $b['id'] ?></td>
+                                    <td><?= $loan['id'] ?></td>
                                     <td>
-                                        <a href="index.php?controller=borrowing&action=viewMember&user_id=<?= $b['user_id'] ?>">
-                                            <?= htmlspecialchars($b['full_name']) ?>
+                                        <a href="index.php?controller=borrowing&action=viewMember&user_id=<?= $loan['user_id'] ?>">
+                                            <?= htmlspecialchars($loan['user_name']) ?>
                                         </a>
                                     </td>
-                                    <td><?= htmlspecialchars($b['title']) ?></td>
-                                    <td><?= $b['borrow_date'] ?></td>
-                                    <td><?= $b['due_date'] ?></td>
+                                    <td><?= htmlspecialchars($loan['librarian_name'] ?? 'N/A') ?></td>
+                                    <td><?= $loan['borrow_date'] ?></td>
+                                    <td><?= $loan['due_date'] ?></td>
                                     <td>
                                         <?php
-                                        switch($b['status']) {
-                                            case 'borrowed':
+                                        switch($loan['status']) {
+                                            case 'active':
                                                 echo '<span class="badge bg-warning">Đang mượn</span>';
                                                 break;
-                                            case 'returned':
-                                                echo '<span class="badge bg-success">Đã trả</span>';
+                                            case 'completed':
+                                                echo '<span class="badge bg-success">Đã hoàn tất</span>';
                                                 break;
                                             case 'overdue':
                                                 echo '<span class="badge bg-danger">Quá hạn</span>';
                                                 break;
                                             default:
-                                                echo '<span class="badge bg-secondary">' . $b['status'] . '</span>';
+                                                echo '<span class="badge bg-secondary">' . $loan['status'] . '</span>';
                                         }
                                         ?>
                                     </td>
                                     <td>
+                                        <a href="index.php?controller=borrowing&action=viewLoanDetails&id=<?= $loan['id'] ?>" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Xem
+                                        </a>
+                                        <?php if ($loan['status'] === 'active'): ?>
+                                            <a href="index.php?controller=borrowing&action=viewReturnForm&id=<?= $loan['id'] ?>" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-undo"></i> Trả sách
+                                            </a>
+                                            <?php if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'librarian'): ?>
+                                            <a href="index.php?controller=borrowing&action=renew&id=<?= $loan['id'] ?>" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-sync"></i> Gia hạn
+                                            </a>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+
+                                <?php if (empty($activeLoans)): ?>
+                                <tr>
+                                    <td colspan="7" class="text-center">Không có dữ liệu</td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Overdue Loans Section - Only for admin/librarian -->
+                    <?php if (!empty($overdueLoans) && ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'librarian')): ?>
+                    <hr>
+                    <h4>Danh sách quá hạn</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Người mượn</th>
+                                    <th>Người xử lý</th>
+                                    <th>Ngày mượn</th>
+                                    <th>Ngày hẹn trả</th>
+                                    <th>Số ngày quá hạn</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($overdueLoans as $loan): ?>
+                                <tr>
+                                    <td><?= $loan['id'] ?></td>
+                                    <td>
+                                        <a href="index.php?controller=borrowing&action=viewMember&user_id=<?= $loan['user_id'] ?>">
+                                            <?= htmlspecialchars($loan['user_name']) ?>
+                                        </a>
+                                    </td>
+                                    <td><?= htmlspecialchars($loan['librarian_name'] ?? 'N/A') ?></td>
+                                    <td><?= $loan['borrow_date'] ?></td>
+                                    <td><?= $loan['due_date'] ?></td>
+                                    <td><?= $loan['overdue_days'] ?> ngày</td>
+                                    <td>
+                                        <span class="badge bg-danger">Quá hạn</span>
+                                    </td>
+                                    <td>
+                                        <a href="index.php?controller=borrowing&action=viewLoanDetails&id=<?= $loan['id'] ?>" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Xem
+                                        </a>
+                                        <a href="index.php?controller=borrowing&action=viewReturnForm&id=<?= $loan['id'] ?>" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-undo"></i> Trả sách
+                                        </a>
+                                    </td>
+                                </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
