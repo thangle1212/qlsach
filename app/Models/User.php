@@ -16,33 +16,29 @@ class User {
 
     public function authenticate($username, $password) {
         $user = $this->findByUsername($username);
-        
+
         if ($user) {
-            // Check if it's a proper bcrypt hash
-            if (password_verify($password, $user['password_hash'])) {
-                return $user;
-            }
-            // For testing: Check if it's a plain text match
+            // So sánh mật khẩu nguyên bản
             if ($user['password_hash'] === $password) {
                 return $user;
             }
         }
-        
+
         return false;
     }
 
     public function create($data) {
         $sql = "
-            INSERT INTO users 
+            INSERT INTO users
             (username, email, password_hash, full_name, phone, address, role, max_borrow_limit)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ";
-        
+
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $data['username'],
             $data['email'],
-            password_hash($data['password'], PASSWORD_DEFAULT), // Always hash new passwords
+            $data['password'], // Lưu mật khẩu dưới dạng nguyên bản
             $data['full_name'],
             $data['phone'] ?? null,
             $data['address'] ?? null,
@@ -128,6 +124,7 @@ class User {
 
     public function updatePassword($id, $password_hash) {
         try {
+            // Lưu mật khẩu dưới dạng nguyên bản thay vì hash
             $stmt = $this->db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
             return $stmt->execute([$password_hash, $id]);
         } catch (PDOException $e) {

@@ -91,7 +91,7 @@ class AdminController
     public function editUser()
     {
         $id = $_GET['id'];
-        $user = (new User())->findById($id);
+        $user = (new User())->getById($id); // Lấy thông tin đầy đủ bao gồm mật khẩu
         require __DIR__ . '/../Views/admin/edit_user.php';
     }
 
@@ -101,10 +101,9 @@ class AdminController
 
         // Handle password change if provided
         if (!empty($_POST['password'])) {
-            // Update password
+            // Update password - lưu trực tiếp mật khẩu nguyên bản
             $userModel = new User();
-            $hashedPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
-            if (!$userModel->updatePassword($id, $hashedPassword)) {
+            if (!$userModel->updatePassword($id, $_POST['password'])) {
                 $_SESSION['error'] = 'Cập nhật mật khẩu thất bại';
                 header("Location: index.php?controller=admin&action=editUser&id=$id");
                 exit;

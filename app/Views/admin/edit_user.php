@@ -68,8 +68,9 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="address" class="form-label">Địa chỉ</label>
-                                    <input type="text" class="form-control" id="address" name="address" value="<?=$user['address'] ?? ''?>">
+                                    <label for="password_current" class="form-label">Mật khẩu hiện tại</label>
+                                    <input type="text" class="form-control" id="password_current" name="password_current" value="<?php echo isset($user['password_hash']) ? htmlspecialchars($user['password_hash']) : ''; ?>" readonly>
+                                    <small class="form-text text-muted">Mật khẩu hiện tại của người dùng</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
