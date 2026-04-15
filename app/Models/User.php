@@ -1,25 +1,29 @@
 <?php
 require_once __DIR__ . '/../Core/Database.php';
 
-class User {
+class User
+{
     private $db;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->db = Database::getInstance();
     }
 
-    public function findByUsername($username) {
+    public function findByUsername($username)
+    {
         $stmt = $this->db->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
         $stmt->execute([$username, $username]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function authenticate($username, $password) {
+    public function authenticate($username, $password)
+    {
         $user = $this->findByUsername($username);
 
         if ($user) {
-            // So sánh mật khẩu nguyên bản
-            if ($user['password_hash'] === $password) {
+            // So sánh mật khẩu bcrypt hash
+            if (password_verify($password, $user['password_hash'])) {
                 return $user;
             }
         }
@@ -27,7 +31,8 @@ class User {
         return false;
     }
 
-    public function create($data) {
+    public function create($data)
+    {
         try {
             $sql = "
                 INSERT INTO users
@@ -60,18 +65,21 @@ class User {
         }
     }
 
-    public function getAll() {
+    public function getAll()
+    {
         $sql = "SELECT id, username, email, full_name, role, status, created_at FROM users ORDER BY id DESC";
         return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function findById($id) {
+    public function findById($id)
+    {
         $stmt = $this->db->prepare("SELECT id, username, email, full_name, role, status FROM users WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function update($id, $data) {
+    public function update($id, $data)
+    {
         try {
             // If all fields provided (for admin updates)
             if (isset($data['username']) && isset($data['email']) && isset($data['role'])) {
@@ -80,7 +88,7 @@ class User {
                     SET username = ?, email = ?, full_name = ?, phone = ?, address = ?, role = ?, status = ?
                     WHERE id = ?
                 ";
-                
+
                 $stmt = $this->db->prepare($sql);
                 return $stmt->execute([
                     $data['username'],
@@ -99,7 +107,7 @@ class User {
                     SET full_name = ?, phone = ?, address = ?, email = ?
                     WHERE id = ?
                 ";
-                
+
                 $stmt = $this->db->prepare($sql);
                 return $stmt->execute([
                     $data['full_name'],
@@ -115,12 +123,14 @@ class User {
         }
     }
 
-    public function delete($id) {
+    public function delete($id)
+    {
         $stmt = $this->db->prepare("DELETE FROM users WHERE id = ?");
         return $stmt->execute([$id]);
     }
 
-    public function changePassword($id, $newPassword) {
+    public function changePassword($id, $newPassword)
+    {
         $sql = "UPDATE users SET password_hash = ? WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -129,13 +139,15 @@ class User {
         ]);
     }
 
-    public function getById($id) {
+    public function getById($id)
+    {
         $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function updatePassword($id, $password_hash) {
+    public function updatePassword($id, $password_hash)
+    {
         try {
             // Lưu mật khẩu dưới dạng nguyên bản thay vì hash
             $stmt = $this->db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");

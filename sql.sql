@@ -230,10 +230,10 @@
   -- 4. USERS
   -- ================================
   INSERT INTO users (username, email, password_hash, full_name, role) VALUES
-  ('admin', 'admin@lib.com', 'admin', 'Library Admin', 'admin'),
-  ('librarian1', 'lib@lib.com', 'librarian1', 'Main Librarian', 'librarian'),
-  ('member1', 'mem1@lib.com', 'member1', 'Nguyễn Văn A', 'member'),
-  ('member2', 'mem2@lib.com', 'member2', 'Trần Thị B', 'member');
+  ('admin', 'admin@lib.com', '$2y$10$BTX2NC2lmE.h2aJfnUu2TuzQSngpvt8xJzP8jUaAOiQUiCwmzbD3W', 'Library Admin', 'admin'),
+  ('librarian1', 'lib@lib.com', '$2y$10$/FuoKg0n0irE.bkyCBI3EuDBNk5czg/19abZ5dPpyg8rEL/JUDFI6', 'Main Librarian', 'librarian'),
+  ('member1', 'mem1@lib.com', '$2y$10$XZc3dFhgMnRAT02Qakx/ku5HovtBJfsIdCOb.XwDmJS7XUbr9pv6i', 'Nguyễn Văn A', 'member'),
+  ('member2', 'mem2@lib.com', '$2y$10$zzRVeQYggfQOmYlKnTPY2OxNXKxbaVGYJgQGqzOGqAJYOk20ZVb2O', 'Trần Thị B', 'member');
 
   -- ================================
   -- 5. BOOKS

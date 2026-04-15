@@ -1,115 +1,52 @@
 <?php
-// Start session once at the application level if not already started
+
+/**
+ * ====================================================
+ * QL Sách - Entry Point (Index.php)
+ * ====================================================
+ * Tất cả requests đều được xử lý từ đây
+ * Hỗ trợ cả Clean URLs và Query Parameters
+ */
+
+// ===== START SESSION =====
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Default controller and action
-$controller = $_GET['controller'] ?? 'auth';
-$action = $_GET['action'] ?? 'showLogin';
+// ===== LOAD CONFIG =====
+require_once 'config.php';
 
-// Special handling for login and register actions to prevent conflicts
-if ($controller === 'auth' && $action === 'login') {
-    // Load the AuthController and execute login action directly
-    require_once "app/Controllers/AuthController.php";
-    $authCtrl = new AuthController();
-    $authCtrl->login();
-    // The login method should redirect and exit, so we shouldn't reach here
-    exit;
-}
+// ===== LOAD ROUTER CLASS =====
+require_once ROUTER_PATH . 'Router.php';
 
-if ($controller === 'auth' && $action === 'register') {
-    // Load the AuthController and execute register action directly
-    require_once "app/Controllers/AuthController.php";
-    $authCtrl = new AuthController();
-    $authCtrl->register();
-    // The register method should redirect and exit
-    exit;
-}
+// ===== USE GLOBAL REQUEST & RESPONSE =====
+// $request và $response được tạo trong config.php
+// Có thể sử dụng ở controllers: global $request, $response;
 
-// For other auth controller actions that don't require authentication
+// ===== INITIALIZE CORS (Bước 4) =====
+CORS::init();
+
+// ===== AUTHENTICATION MIDDLEWARE =====
 $allowUnauthenticated = [
-    ['controller' => 'auth', 'action' => 'showLogin'],
-    ['controller' => 'auth', 'action' => 'showRegister'],
-    ['controller' => 'auth', 'action' => 'register']
+    'auth' => ['showLogin', 'showRegister', 'login', 'register']
 ];
 
-$isUnauthenticatedAllowed = false;
-foreach ($allowUnauthenticated as $allowed) {
-    if ($allowed['controller'] === $controller && $allowed['action'] === $action) {
-        $isUnauthenticatedAllowed = true;
-        break;
-    }
-}
-
-// Check if user is logged in
 $isLoggedIn = isset($_SESSION['user_id']);
 
-// If user is not logged in and trying to access a protected page
-if (!$isLoggedIn && !$isUnauthenticatedAllowed && !($controller === 'auth' && $action === 'login')) {
-    // Redirect to login page
-    header("Location: index.php?controller=auth&action=showLogin");
-    exit;
+// Lấy controller và action từ query params (fallback)
+$controller = ucfirst($request->getQuery('controller') ?? 'auth');
+$action = $request->getQuery('action') ?? 'index';
+
+// Kiểm tra nếu user chưa đăng nhập và truy cập trang protected
+if (!$isLoggedIn && !(isset($allowUnauthenticated[$controller]) && in_array($action, $allowUnauthenticated[$controller]))) {
+    redirect('index.php?controller=auth&action=showLogin');
 }
 
-// Special handling for default route when logged in
-if ($controller === 'auth' && !$isLoggedIn && $action !== 'login' && $action !== 'showRegister' && $action !== 'register') {
-    // If no controller specified and not logged in, show login
-    $controller = 'auth';
-    $action = 'showLogin';
-} elseif ($controller === 'auth' && $isLoggedIn && $action !== 'logout' && $action !== 'showRegister' && $action !== 'register') {
-    // If auth controller is called but user is logged in (except for logout), redirect based on role
-    switch ($_SESSION['role']) {
-        case 'admin':
-            header("Location: index.php?controller=admin&action=dashboard");
-            exit;
-        case 'librarian':
-            header("Location: index.php?controller=book");
-            exit;
-        case 'member':
-            header("Location: index.php?controller=book");
-            exit;
-    }
-}
+// ===== INITIALIZE ROUTER =====
+$router = new Router();
 
-// Special handling for admin and settings controllers
-if ($controller === 'admin' && $_SESSION['role'] !== 'admin') {
-    $_SESSION['error'] = 'Bạn không có quyền truy cập';
-    header("Location: index.php?controller=book");
-    exit;
-}
+// ===== LOAD ROUTES DEFINITION =====
+require_once ROUTER_PATH . 'Route.php';
 
-// Special handling for settings controller (admin only)
-if ($controller === 'settings' && $_SESSION['role'] !== 'admin') {
-    $_SESSION['error'] = 'Bạn không có quyền truy cập';
-    header("Location: index.php?controller=book");
-    exit;
-}
-
-// Load the controller
-$file = "app/Controllers/" . ucfirst($controller) . "Controller.php";
-
-if (!file_exists($file)) {
-    // If controller doesn't exist, redirect to appropriate page
-    if ($isLoggedIn) {
-        header("Location: index.php?controller=book");
-    } else {
-        header("Location: index.php?controller=auth&action=showLogin");
-    }
-    exit;
-}
-
-require_once $file;
-
-$class = ucfirst($controller) . "Controller";
-$ctrl = new $class();
-
-// Check if the action method exists
-if (!method_exists($ctrl, $action)) {
-    // If action doesn't exist, redirect to index
-    header("Location: index.php?controller=$controller&action=index");
-    exit;
-}
-
-// Call the action
-$ctrl->$action();
+// ===== RUN ROUTER =====
+$router->run();
