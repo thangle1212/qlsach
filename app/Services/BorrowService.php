@@ -24,7 +24,8 @@ class BorrowService {
      * @param array $bookIds Array of book IDs to borrow
      * @param string $dueDate Due date for the borrowed books
      * @param int|null $librarianId ID of the librarian processing the loan (optional)
-     * @return bool True if successful, false otherwise
+     * @return int Loan slip ID if successful
+     * @throws Exception When borrowing fails
      */
     public function borrowBooks($userId, $bookIds, $dueDate, $librarianId = null) {
         try {
@@ -98,7 +99,7 @@ class BorrowService {
             $this->updateUserBorrowCount($userId, count($bookIds));
 
             $this->db->commit();
-            return true;
+            return $loanSlipId;
 
         } catch (Exception $e) {
             $this->db->rollback();

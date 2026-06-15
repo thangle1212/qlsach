@@ -3,7 +3,9 @@
 // It provides a consistent header with navigation based on user role
 // Note: Session should already be started by index.php
 
-define('BASE_URL', '/qlsach/');
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/qlsach');
+}
 ?>
 
 <!DOCTYPE html>

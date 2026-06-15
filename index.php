@@ -34,11 +34,21 @@ $allowUnauthenticated = [
 $isLoggedIn = isset($_SESSION['user_id']);
 
 // Lấy controller và action từ query params (fallback)
-$controller = ucfirst($request->getQuery('controller') ?? 'auth');
+$controller = strtolower($request->getQuery('controller') ?? 'auth');
 $action = $request->getQuery('action') ?? 'index';
 
+$requestUri = $_SERVER['REQUEST_URI'] ?? '';
+$rewriteUrl = $_GET['url'] ?? '';
+$pathFromUri = parse_url($requestUri, PHP_URL_PATH) ?? '';
+$requestPath = trim($rewriteUrl !== '' ? $rewriteUrl : $pathFromUri, '/');
+$requestPath = ltrim(str_replace('/qlsach', '', $requestPath), '/');
+$requestPath = preg_replace('#^index\.php#', '', $requestPath);
+$requestPath = ltrim($requestPath, '/');
+$isApiRequest = strpos($requestPath, 'api/') === 0;
+
 // Kiểm tra nếu user chưa đăng nhập và truy cập trang protected
-if (!$isLoggedIn && !(isset($allowUnauthenticated[$controller]) && in_array($action, $allowUnauthenticated[$controller]))) {
+$allowedActions = $allowUnauthenticated[$controller] ?? [];
+if (!$isLoggedIn && !$isApiRequest && !in_array($action, $allowedActions, true)) {
     redirect('index.php?controller=auth&action=showLogin');
 }
 

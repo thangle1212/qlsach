@@ -1,0 +1,52 @@
+PHP Error [2] Constant BASE_URL already defined in C:\xampp\htdocs\qlsach\app\header.php:6PHP Error [2] Constant BASE_URL already defined in C:\xampp\htdocs\qlsach\app\header.php:6[2026-06-15 09:38:54] syntax error, unexpected token "<", expecting end of file (C:\xampp\htdocs\qlsach\app\header.php:10)
+#0 C:\xampp\htdocs\qlsach\app\Controllers\AdminController.php(56): require()
+#1 C:\xampp\htdocs\qlsach\Router\Router.php(285): AdminController->dashboard(Array)
+#2 C:\xampp\htdocs\qlsach\Router\Router.php(219): Router->executeController()
+#3 C:\xampp\htdocs\qlsach\Router\Router.php(163): Router->handleQueryParams()
+#4 C:\xampp\htdocs\qlsach\index.php(53): Router->run()
+#5 {main}
+---
+[2026-06-15 09:38:55] syntax error, unexpected token "<", expecting end of file (C:\xampp\htdocs\qlsach\app\header.php:10)
+#0 C:\xampp\htdocs\qlsach\app\Controllers\AdminController.php(56): require()
+#1 C:\xampp\htdocs\qlsach\Router\Router.php(285): AdminController->dashboard(Array)
+#2 C:\xampp\htdocs\qlsach\Router\Router.php(219): Router->executeController()
+#3 C:\xampp\htdocs\qlsach\Router\Router.php(163): Router->handleQueryParams()
+#4 C:\xampp\htdocs\qlsach\index.php(53): Router->run()
+#5 {main}
+---
+[2026-06-15 09:38:56] syntax error, unexpected token "<", expecting end of file (C:\xampp\htdocs\qlsach\app\header.php:10)
+#0 C:\xampp\htdocs\qlsach\app\Controllers\AdminController.php(56): require()
+#1 C:\xampp\htdocs\qlsach\Router\Router.php(285): AdminController->dashboard(Array)
+#2 C:\xampp\htdocs\qlsach\Router\Router.php(219): Router->executeController()
+#3 C:\xampp\htdocs\qlsach\Router\Router.php(163): Router->handleQueryParams()
+#4 C:\xampp\htdocs\qlsach\index.php(53): Router->run()
+#5 {main}
+---
+[2026-06-15 09:38:58] syntax error, unexpected token "<", expecting end of file (C:\xampp\htdocs\qlsach\app\header.php:10)
+#0 C:\xampp\htdocs\qlsach\app\Controllers\AdminController.php(56): require()
+#1 C:\xampp\htdocs\qlsach\Router\Router.php(285): AdminController->dashboard(Array)
+#2 C:\xampp\htdocs\qlsach\Router\Router.php(219): Router->executeController()
+#3 C:\xampp\htdocs\qlsach\Router\Router.php(163): Router->handleQueryParams()
+#4 C:\xampp\htdocs\qlsach\index.php(53): Router->run()
+#5 {main}
+---
+PHP Error [2] Undefined variable $router in C:\xampp\htdocs\qlsach\Router\Route.php:8[2026-06-15 10:04:50] Call to a member function get() on null (C:\xampp\htdocs\qlsach\Router\Route.php:8)
+#0 C:\xampp\htdocs\qlsach\tmp_debug.php(4): require()
+#1 {main}
+---
+PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\tmp_debug.php:1) in C:\xampp\htdocs\qlsach\app\System\Error\ErrorHandler.php:60PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\tmp_debug.php:1) in C:\xampp\htdocs\qlsach\app\System\Error\ErrorHandler.php:60PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\tmp_debug.php:1) in C:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\tmp_debug.php:1) in C:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\tmp_debug.php:1) in C:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\tmp_debug.php:1) in C:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\tmp_debug.php:1) in C:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\tmp_debug.php:1) in C:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\tmp_debug.php:1) in C:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\tmp_debug.php:1) in C:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Undefined array key "role" in C:\xampp\htdocs\qlsach\app\Controllers\BorrowingController.php:324PHP Error [2] Undefined array key "user_id" in C:\xampp\htdocs\qlsach\app\Controllers\BorrowingController.php:324PHP Error [2] Undefined array key "user_id" in C:\xampp\htdocs\qlsach\app\Controllers\BorrowingController.php:324PHP Error [2] require_once(C:\xampp\htdocs\qlsach\app\Controllers\api/../Controllers/BaseController.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\qlsach\app\Controllers\api\BaseApiController.php:3[2026-06-15 10:14:56] Failed opening required 'C:\xampp\htdocs\qlsach\app\Controllers\api/../Controllers/BaseController.php' (include_path='C:\xampp\php\PEAR') (C:\xampp\htdocs\qlsach\app\Controllers\api\BaseApiController.php:3)
+#0 C:\xampp\htdocs\qlsach\app\Controllers\api\BorrowingApiController.php(3): require_once()
+#1 C:\xampp\htdocs\qlsach\Router\Router.php(274): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\qlsach\Router\Router.php(243): Router->executeController()
+#3 C:\xampp\htdocs\qlsach\Router\Router.php(161): Router->executeCallback('borrowingApi@sh...')
+#4 C:\xampp\htdocs\qlsach\index.php(62): Router->run()
+#5 {main}
+---
+PHP Error [2] require_once(C:\xampp\htdocs\qlsach\app\Controllers\api/../Controllers/BaseController.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\qlsach\app\Controllers\api\BaseApiController.php:3PHP Error [2] require_once(C:\xampp\htdocs\qlsach\app\Controllers\api/../Services/BorrowService.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\qlsach\app\Controllers\api\BorrowingApiController.php:4[2026-06-15 10:15:16] Failed opening required 'C:\xampp\htdocs\qlsach\app\Controllers\api/../Services/BorrowService.php' (include_path='C:\xampp\php\PEAR') (C:\xampp\htdocs\qlsach\app\Controllers\api\BorrowingApiController.php:4)
+#0 C:\xampp\htdocs\qlsach\Router\Router.php(274): require_once()
+#1 C:\xampp\htdocs\qlsach\Router\Router.php(243): Router->executeController()
+#2 C:\xampp\htdocs\qlsach\Router\Router.php(161): Router->executeCallback('borrowingApi@sh...')
+#3 C:\xampp\htdocs\qlsach\index.php(62): Router->run()
+#4 {main}
+---
+PHP Error [2] require_once(C:\xampp\htdocs\qlsach\app\Controllers\api/../Services/BorrowService.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\qlsach\app\Controllers\api\BorrowingApiController.php:4

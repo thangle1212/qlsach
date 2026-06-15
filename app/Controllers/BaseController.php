@@ -55,7 +55,19 @@ abstract class BaseController
      */
     protected function checkAuth()
     {
+        $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+        $rewriteUrl = $_GET['url'] ?? '';
+        $pathFromUri = parse_url($requestUri, PHP_URL_PATH) ?? '';
+        $requestPath = trim($rewriteUrl !== '' ? $rewriteUrl : $pathFromUri, '/');
+        $requestPath = ltrim(str_replace('/qlsach', '', $requestPath), '/');
+        $requestPath = preg_replace('#^index\.php#', '', $requestPath);
+        $requestPath = ltrim($requestPath, '/');
+
         if (!isset($_SESSION['user_id'])) {
+            if (strpos($requestPath, 'api/') === 0) {
+                $this->error('Bạn cần đăng nhập để truy cập API', [], 401);
+            }
+
             redirect('index.php?controller=auth&action=showLogin');
         }
     }
@@ -225,9 +237,13 @@ abstract class BaseController
      * @param mixed $action
      * @return mixed
      */
-    protected function validateAndGetLoan($loanSlipId, $borrowService = null, $action = null)
+    protected function validateAndGetLoan($loanSlipId, $borrowService = null, $action = null, $api = false)
     {
         if (!$loanSlipId) {
+            if ($api) {
+                $this->error('ID phiếu mượn không hợp lệ', [], 400);
+            }
+
             $this->handleRedirect(
                 "index.php?controller=borrowing",
                 'ID phiếu mượn không hợp lệ',
@@ -236,6 +252,10 @@ abstract class BaseController
         }
 
         if ($borrowService === null) {
+            if ($api) {
+                $this->error('Service không được cung cấp', [], 500);
+            }
+
             $this->handleRedirect(
                 "index.php?controller=borrowing",
                 'Service không được cung cấp',
@@ -245,6 +265,10 @@ abstract class BaseController
 
         $loan = $borrowService->getLoanSlipById($loanSlipId);
         if (!$loan) {
+            if ($api) {
+                $this->error('Phiếu mượn không tồn tại', [], 404);
+            }
+
             $this->handleRedirect(
                 "index.php?controller=borrowing",
                 'Phiếu mượn không tồn tại',

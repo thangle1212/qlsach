@@ -287,4 +287,5 @@ class BorrowingController extends BaseController {
 
         require __DIR__ . '/../Views/borrowings/loan_details.php';
     }
+
 }

@@ -51,6 +51,12 @@ $router->get('/borrowing/{id}', 'borrowing@show');
 $router->post('/borrowing', 'borrowing@store');
 $router->put('/borrowing/{id}', 'borrowing@update');
 $router->delete('/borrowing/{id}', 'borrowing@destroy');
+$router->get('/api/borrowings', 'borrowingApi@index');
+$router->get('/api/borrowings/{id}', 'borrowingApi@show');
+$router->post('/api/borrowings', 'borrowingApi@store');
+$router->put('/api/borrowings/{id}/renew', 'borrowingApi@renew');
+$router->put('/api/borrowings/{id}/return', 'borrowingApi@return');
+$router->delete('/api/borrowings/{id}', 'borrowingApi@destroy');
 
 // ===== MEMBER ROUTES (Admin) =====
 $router->get('/members', 'member@index');

@@ -15,10 +15,10 @@ class Router
     private $params = [];
     private $currentRoute = null;
 
-    public function __construct($url = '', $method = 'GET')
+    public function __construct($url = '', $method = '')
     {
         $this->url = rtrim($url, '/') ?: '/';
-        $this->method = strtoupper($method);
+        $this->method = strtoupper($method ?: ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
         $this->parseUrl();
     }
 
@@ -27,15 +27,20 @@ class Router
      */
     private function parseUrl()
     {
-        // Lấy URL từ REQUEST_URI hoặc tham số truyền vào
-        $url = $_SERVER['REQUEST_URI'] ?? '';
+        // Hỗ trợ cả URL gốc và rewrite bằng ?url=/api/borrowings/1
+        $url = $_GET['url'] ?? $_SERVER['REQUEST_URI'] ?? '';
 
         // Loại bỏ query string
         if (strpos($url, '?') !== false) {
             $url = substr($url, 0, strpos($url, '?'));
         }
 
-        // Loại bỏ script path
+        // Nếu URL bắt đầu bằng /index.php, bỏ phần này để giữ clean URL
+        if (strpos($url, '/index.php') === 0) {
+            $url = substr($url, strlen('/index.php'));
+        }
+
+        // Loại bỏ script path nếu URL có đầy đủ path /qlsach/api/...
         $scriptPath = dirname($_SERVER['SCRIPT_NAME']);
         if ($scriptPath !== '/' && strpos($url, $scriptPath) === 0) {
             $url = substr($url, strlen($scriptPath));
@@ -244,7 +249,22 @@ class Router
      */
     private function executeController()
     {
-        $controllerFile = APP_PATH . 'Controllers/' . $this->controller . 'Controller.php';
+        if (substr($this->controller,-3) === 'Api')
+{
+    $controllerFile =
+        APP_PATH .
+        'Controllers/api/' .
+        $this->controller .
+        'Controller.php';
+}
+else
+{
+    $controllerFile =
+        APP_PATH .
+        'Controllers/' .
+        $this->controller .
+        'Controller.php';
+}
 
         if (!file_exists($controllerFile)) {
             $this->handle404();

@@ -34,6 +34,10 @@ function upload($path = '')
  */
 function redirect($url, $statusCode = 302)
 {
+    if (!preg_match('#^https?://#i', $url) && strpos($url, '/') !== 0) {
+        $url = BASE_URL . $url;
+    }
+
     header("Location: " . $url, true, $statusCode);
     exit;
 }
