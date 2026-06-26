@@ -1,36 +1,167 @@
-Mở Postman
+# API Documentation
 
-Tạo request:
+## Khởi động
 
-GET: http://localhost/qlsach/api/borrowings
-GET: http://localhost/qlsach/api/borrowings/1
-POST: http://localhost/qlsach/api/borrowings
-Header: Content-Type = application/json
-Body raw JSON:
+* Chạy Apache và MySQL bằng XAMPP.
+* Đặt project trong `htdocs/qlsach`.
+* Mở Postman để test API.
+
+---
+
+# Authentication API
+
+## Đăng nhập
+
+```
+POST http://localhost/qlsach/api/login
+```
+
+**Header**
+
+```
+Content-Type: application/json
+```
+
+**Body**
+
+```json
 {
-"user_id": 4,
-"book_ids": [3],
-"due_date": "2026-06-30"
+  "username": "admin",
+  "password": "password"
 }
-PUT: http://localhost/qlsach/api/borrowings/1/renew
-PUT: http://localhost/qlsach/api/borrowings/1/return
-Header: Content-Type = application/json
-Body raw JSON:
+```
+
+## Đăng xuất
+
+```
+POST http://localhost/qlsach/api/logout
+```
+
+**Lỗi thường gặp**
+
+* **401**: Sai tài khoản hoặc chưa đăng nhập.
+
+---
+
+# Books API
+
+## Request
+
+```
+GET    http://localhost/qlsach/api/books
+GET    http://localhost/qlsach/api/books/{id}
+POST   http://localhost/qlsach/api/books
+PUT    http://localhost/qlsach/api/books/{id}
+DELETE http://localhost/qlsach/api/books/{id}
+```
+
+**Header**
+
+```
+Content-Type: application/json
+```
+
+**Body (POST/PUT)**
+
+```json
 {
-"return_items": [
-{ "loan_item_id": 1, "quantity": 1 }
-],
-"note": "test"
+  "title": "Lập Trình PHP Advanced",
+  "isbn": "9781234567890",
+  "author_id": 1,
+  "publisher_id": 1,
+  "category_id": 1,
+  "total_copies": 10,
+  "publication_year": 2024,
+  "pages": 350,
+  "description": "Hướng dẫn lập trình PHP"
 }
-DELETE: http://localhost/qlsach/api/borrowings/1
-Nếu muốn test đúng flow:
+```
 
-POST tạo phiếu → lấy loan_slip_id
-GET chi tiết → lấy loan_item_id
-PUT return → dùng loan_item_id đó
-DELETE xóa phiếu
-Nếu lỗi:
+### Flow test
 
-422: thiếu/ sai dữ liệu input
-400: logic lỗi trong service
-404: id không tồn tại
+1. POST tạo sách.
+2. GET danh sách hoặc GET theo ID.
+3. PUT cập nhật sách.
+4. DELETE xóa sách.
+
+**Lỗi thường gặp**
+
+* **400**: Không thể xóa sách đang được mượn.
+* **401**: Chưa đăng nhập.
+* **403**: Không có quyền.
+* **404**: Không tìm thấy sách.
+* **422**: Thiếu hoặc sai dữ liệu.
+
+---
+
+# Borrowings API
+
+## Request
+
+```
+GET    http://localhost/qlsach/api/borrowings
+GET    http://localhost/qlsach/api/borrowings/{id}
+POST   http://localhost/qlsach/api/borrowings
+PUT    http://localhost/qlsach/api/borrowings/{id}/renew
+PUT    http://localhost/qlsach/api/borrowings/{id}/return
+DELETE http://localhost/qlsach/api/borrowings/{id}
+```
+
+**Header**
+
+```
+Content-Type: application/json
+```
+
+**Body (POST)**
+
+```json
+{
+  "user_id": 4,
+  "book_ids": [3],
+  "due_date": "2026-06-30"
+}
+```
+
+**Body (PUT return)**
+
+```json
+{
+  "return_items": [
+    {
+      "loan_item_id": 1,
+      "quantity": 1
+    }
+  ],
+  "note": "test"
+}
+```
+
+### Flow test
+
+1. POST tạo phiếu → lấy `loan_slip_id`.
+2. GET chi tiết → lấy `loan_item_id`.
+3. PUT return.
+4. DELETE phiếu.
+
+**Lỗi thường gặp**
+
+* **400**: Lỗi xử lý.
+* **404**: Không tồn tại ID.
+* **422**: Thiếu hoặc sai dữ liệu.
+
+---
+
+# HTTP Status
+
+| Code | Ý nghĩa              |
+| ---- | -------------------- |
+| 200  | Thành công           |
+| 201  | Tạo thành công       |
+| 400  | Bad Request          |
+| 401  | Unauthorized         |
+| 403  | Forbidden            |
+| 404  | Not Found            |
+| 422  | Unprocessable Entity |
+\
+

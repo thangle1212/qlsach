@@ -58,6 +58,25 @@ $router->put('/api/borrowings/{id}/renew', 'borrowingApi@renew');
 $router->put('/api/borrowings/{id}/return', 'borrowingApi@return');
 $router->delete('/api/borrowings/{id}', 'borrowingApi@destroy');
 
+// ===== BOOK API ROUTES =====
+$router->get('/api/books', 'bookApi@index');
+$router->get('/api/books/{id}', 'bookApi@show');
+$router->post('/api/books', 'bookApi@store');
+$router->put('/api/books/{id}', 'bookApi@update');
+$router->delete('/api/books/{id}', 'bookApi@destroy');
+
+// ===== AUTH API ROUTES =====
+$router->post('/api/login', 'authApi@login');
+$router->get('/api/login', function () {
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Use POST /api/login with JSON body: {"username":"...", "password":"..."}'
+    ]);
+    exit;
+});
+$router->post('/api/logout', 'authApi@logout');
+
 // ===== MEMBER ROUTES (Admin) =====
 $router->get('/members', 'member@index');
 $router->get('/members/{id}', 'member@show');
