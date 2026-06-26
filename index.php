@@ -16,6 +16,18 @@ if (session_status() == PHP_SESSION_NONE) {
 // ===== LOAD CONFIG =====
 require_once 'config.php';
 
+// Fallback: ensure $request exists to avoid "Undefined variable '$request'".
+// config.php is expected to create a $request object, but if it's missing
+// provide a minimal implementation that supports getQuery().
+if (!isset($request)) {
+    $request = new class {
+        public function getQuery($key)
+        {
+            return $_GET[$key] ?? null;
+        }
+    };
+}
+
 // ===== LOAD ROUTER CLASS =====
 require_once ROUTER_PATH . 'Router.php';
 

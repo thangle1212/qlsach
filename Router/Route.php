@@ -59,6 +59,7 @@ $router->put('/api/borrowings/{id}/return', 'borrowingApi@return');
 $router->delete('/api/borrowings/{id}', 'borrowingApi@destroy');
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ===== CATEGORY API ROUTES =====
 $router->get('/api/categories', 'categoryApi@index');
 $router->get('/api/categories/{id}', 'categoryApi@show');
@@ -82,6 +83,27 @@ $router->delete('/api/publishers/{id}', 'publisherApi@destroy');
 
 =======
 >>>>>>> c1cdffb792e7ecfa3ebcb0f61602ebc68bd54a57
+=======
+// ===== BOOK API ROUTES =====
+$router->get('/api/books', 'bookApi@index');
+$router->get('/api/books/{id}', 'bookApi@show');
+$router->post('/api/books', 'bookApi@store');
+$router->put('/api/books/{id}', 'bookApi@update');
+$router->delete('/api/books/{id}', 'bookApi@destroy');
+
+// ===== AUTH API ROUTES =====
+$router->post('/api/login', 'authApi@login');
+$router->get('/api/login', function () {
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Use POST /api/login with JSON body: {"username":"...", "password":"..."}'
+    ]);
+    exit;
+});
+$router->post('/api/logout', 'authApi@logout');
+
+>>>>>>> f3fb479ff834b7d17d630f4d94b600a7ee5d501a
 // ===== MEMBER ROUTES (Admin) =====
 $router->get('/members', 'member@index');
 $router->get('/members/{id}', 'member@show');
