@@ -49,4 +49,8 @@ PHP Error [2] require_once(C:\xampp\htdocs\qlsach\app\Controllers\api/../Control
 #3 C:\xampp\htdocs\qlsach\index.php(62): Router->run()
 #4 {main}
 ---
+<<<<<<< HEAD
 PHP Error [2] require_once(C:\xampp\htdocs\qlsach\app\Controllers\api/../Services/BorrowService.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\qlsach\app\Controllers\api\BorrowingApiController.php:4PHP Error [2] Undefined array key "status" in C:\xampp\htdocs\qlsach\app\Controllers\AuthController.php:29PHP Error [2] Undefined array key "status" in C:\xampp\htdocs\qlsach\app\Controllers\AuthController.php:29PHP Error [2] Undefined array key "status" in C:\xampp\htdocs\qlsach\app\Controllers\AuthController.php:29PHP Error [2] Undefined array key "status" in C:\xampp\htdocs\qlsach\app\Controllers\AuthController.php:29PHP Error [2] Undefined array key "status" in C:\xampp\htdocs\qlsach\app\Controllers\AuthController.php:29PHP Error [2] Undefined array key "status" in C:\xampp\htdocs\qlsach\app\Controllers\AuthController.php:29PHP Error [2] Undefined array key "status" in C:\xampp\htdocs\qlsach\app\Controllers\AuthController.php:29PHP Error [2] Undefined array key "status" in C:\xampp\htdocs\qlsach\app\Controllers\AuthController.php:29
+=======
+PHP Error [2] require_once(C:\xampp\htdocs\qlsach\app\Controllers\api/../Services/BorrowService.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\qlsach\app\Controllers\api\BorrowingApiController.php:4
+>>>>>>> c1cdffb792e7ecfa3ebcb0f61602ebc68bd54a57

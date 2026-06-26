@@ -58,6 +58,7 @@ $router->put('/api/borrowings/{id}/renew', 'borrowingApi@renew');
 $router->put('/api/borrowings/{id}/return', 'borrowingApi@return');
 $router->delete('/api/borrowings/{id}', 'borrowingApi@destroy');
 
+<<<<<<< HEAD
 // ===== CATEGORY API ROUTES =====
 $router->get('/api/categories', 'categoryApi@index');
 $router->get('/api/categories/{id}', 'categoryApi@show');
@@ -79,6 +80,8 @@ $router->post('/api/publishers', 'publisherApi@store');
 $router->put('/api/publishers/{id}', 'publisherApi@update');
 $router->delete('/api/publishers/{id}', 'publisherApi@destroy');
 
+=======
+>>>>>>> c1cdffb792e7ecfa3ebcb0f61602ebc68bd54a57
 // ===== MEMBER ROUTES (Admin) =====
 $router->get('/members', 'member@index');
 $router->get('/members/{id}', 'member@show');
