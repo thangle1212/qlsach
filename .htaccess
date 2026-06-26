@@ -1,0 +1,11 @@
+RewriteEngine On
+RewriteBase /qlsach/
+
+# Redirect root URL to login page
+RewriteRule ^$ /qlsach/index.php?url=/ [QSA,L]
+
+# Pass clean URLs to the PHP router, preserving the original path for routes
+# such as /api/borrowings/1.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)$ /qlsach/index.php?url=/$1 [QSA,L]
