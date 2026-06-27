@@ -58,4 +58,33 @@ PHP Error [2] require_once(C:\xampp\htdocs\qlsach\app\Controllers\api/../Service
 =======
 PHP Error [2] require_once(C:\xampp\htdocs\qlsach\app\Controllers\api/../Services/BorrowService.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\qlsach\app\Controllers\api\BorrowingApiController.php:4PHP Error [2] Cannot modify header information - headers already sent by (output started at D:\xampp\htdocs\qlsach\config.php:29) in D:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at D:\xampp\htdocs\qlsach\config.php:29) in D:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at D:\xampp\htdocs\qlsach\config.php:29) in D:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at D:\xampp\htdocs\qlsach\config.php:29) in D:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at D:\xampp\htdocs\qlsach\config.php:29) in D:\xampp\htdocs\qlsach\app\Helper\public.php:41PHP Error [2] Cannot modify header information - headers already sent by (output started at D:\xampp\htdocs\qlsach\config.php:29) in D:\xampp\htdocs\qlsach\app\Helper\public.php:41
 >>>>>>> f3fb479ff834b7d17d630f4d94b600a7ee5d501a
-PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\config.php:29) in C:\xampp\htdocs\qlsach\Router\Route.php:9PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\config.php:29) in C:\xampp\htdocs\qlsach\Router\Route.php:9
+PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\config.php:29) in C:\xampp\htdocs\qlsach\Router\Route.php:9PHP Error [2] Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\qlsach\config.php:29) in C:\xampp\htdocs\qlsach\Router\Route.php:9[2026-06-27 17:52:34] syntax error, unexpected token "<<", expecting end of file (C:\xampp\htdocs\qlsach\Router\Route.php:61)
+#0 {main}
+---
+[2026-06-27 17:52:38] syntax error, unexpected token "<<", expecting end of file (C:\xampp\htdocs\qlsach\Router\Route.php:61)
+#0 {main}
+---
+[2026-06-27 17:52:48] syntax error, unexpected token "<<", expecting end of file (C:\xampp\htdocs\qlsach\Router\Route.php:61)
+#0 {main}
+---
+[2026-06-27 17:52:49] syntax error, unexpected token "<<", expecting end of file (C:\xampp\htdocs\qlsach\Router\Route.php:61)
+#0 {main}
+---
+[2026-06-27 17:52:49] syntax error, unexpected token "<<", expecting end of file (C:\xampp\htdocs\qlsach\Router\Route.php:61)
+#0 {main}
+---
+[2026-06-27 17:52:49] syntax error, unexpected token "<<", expecting end of file (C:\xampp\htdocs\qlsach\Router\Route.php:61)
+#0 {main}
+---
+[2026-06-27 17:52:50] syntax error, unexpected token "<<", expecting end of file (C:\xampp\htdocs\qlsach\Router\Route.php:61)
+#0 {main}
+---
+[2026-06-27 17:52:50] syntax error, unexpected token "<<", expecting end of file (C:\xampp\htdocs\qlsach\Router\Route.php:61)
+#0 {main}
+---
+[2026-06-27 17:52:51] syntax error, unexpected token "<<", expecting end of file (C:\xampp\htdocs\qlsach\Router\Route.php:61)
+#0 {main}
+---
+[2026-06-27 17:52:53] syntax error, unexpected token "<<", expecting end of file (C:\xampp\htdocs\qlsach\Router\Route.php:61)
+#0 {main}
+---

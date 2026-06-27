@@ -18,7 +18,7 @@ $router->post('/logout', 'auth@logout');
 // ===== BOOK ROUTES (Cần đăng nhập) =====
 $router->get('/books', 'book@index');
 $router->get('/books/{id}', 'book@show');
-$router->get('/books/create', 'book@create');
+$router->get('/books/create', 'book@create');   
 $router->post('/books', 'book@store');
 $router->get('/books/{id}/edit', 'book@edit');
 $router->put('/books/{id}', 'book@update');
@@ -104,6 +104,7 @@ $router->get('/api/users/{id}', 'userApi@show');
 $router->post('/api/users', 'userApi@store');
 $router->put('/api/users/{id}', 'userApi@update');
 $router->delete('/api/users/{id}', 'userApi@destroy');
+
 // ===== MEMBER ROUTES (Admin) =====
 $router->get('/members', 'member@index');
 $router->get('/members/{id}', 'member@show');
