@@ -58,8 +58,6 @@ $router->put('/api/borrowings/{id}/renew', 'borrowingApi@renew');
 $router->put('/api/borrowings/{id}/return', 'borrowingApi@return');
 $router->delete('/api/borrowings/{id}', 'borrowingApi@destroy');
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // ===== CATEGORY API ROUTES =====
 $router->get('/api/categories', 'categoryApi@index');
 $router->get('/api/categories/{id}', 'categoryApi@show');
@@ -81,9 +79,6 @@ $router->post('/api/publishers', 'publisherApi@store');
 $router->put('/api/publishers/{id}', 'publisherApi@update');
 $router->delete('/api/publishers/{id}', 'publisherApi@destroy');
 
-=======
->>>>>>> c1cdffb792e7ecfa3ebcb0f61602ebc68bd54a57
-=======
 // ===== BOOK API ROUTES =====
 $router->get('/api/books', 'bookApi@index');
 $router->get('/api/books/{id}', 'bookApi@show');
@@ -103,7 +98,12 @@ $router->get('/api/login', function () {
 });
 $router->post('/api/logout', 'authApi@logout');
 
->>>>>>> f3fb479ff834b7d17d630f4d94b600a7ee5d501a
+// ===== USER API ROUTES =====
+$router->get('/api/users', 'userApi@index');
+$router->get('/api/users/{id}', 'userApi@show');
+$router->post('/api/users', 'userApi@store');
+$router->put('/api/users/{id}', 'userApi@update');
+$router->delete('/api/users/{id}', 'userApi@destroy');
 // ===== MEMBER ROUTES (Admin) =====
 $router->get('/members', 'member@index');
 $router->get('/members/{id}', 'member@show');

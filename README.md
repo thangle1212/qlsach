@@ -152,6 +152,46 @@ Content-Type: application/json
 
 ---
 
+# Users API
+
+## Request
+
+```
+GET    http://localhost/qlsach/api/users
+GET    http://localhost/qlsach/api/users/{id}
+POST   http://localhost/qlsach/api/users
+PUT    http://localhost/qlsach/api/users/{id}
+DELETE http://localhost/qlsach/api/users/{id}
+```
+
+**Header**
+
+```
+Content-Type: application/json
+```
+
+**Body (POST/PUT)**
+
+```json
+{
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "password": "securepassword",
+  "full_name": "Nguyễn Văn C",
+  "phone": "0987654321",
+  "address": "Hà Nội",
+  "role": "member",
+  "max_borrow_limit": 5
+}
+```
+
+*Lưu ý:*
+- Khi tạo mới hoặc cập nhật người dùng, `password` sẽ tự động được mã hóa bằng bcrypt trước khi lưu vào cơ sở dữ liệu.
+- Chỉ tài khoản có quyền `admin` mới được xem toàn bộ danh sách người dùng (`GET /api/users`), tạo người dùng mới (`POST /api/users`), hoặc xóa người dùng (`DELETE /api/users/{id}`).
+- Thành viên thường (`member`) chỉ có thể xem (`GET /api/users/{id}`) và cập nhật (`PUT /api/users/{id}`) thông tin cá nhân của chính họ.
+
+---
+
 # HTTP Status
 
 | Code | Ý nghĩa              |
@@ -163,5 +203,5 @@ Content-Type: application/json
 | 403  | Forbidden            |
 | 404  | Not Found            |
 | 422  | Unprocessable Entity |
-\
+
 

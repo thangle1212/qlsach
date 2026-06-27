@@ -1,0 +1,479 @@
+{
+	"info": {
+		"_postman_id": "8bfa2e2a-0a77-4977-94a2-7fa62e84c9ea",
+		"name": "Library Management API",
+		"description": "Postman collection to test the Library Management System APIs (Auth, Users, Books, Borrowings, Categories, Authors, Publishers)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost/qlsach/api/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"login"
+							]
+						},
+						"description": "Log in to the system. Returns 200 on success and sets the PHP session cookie."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/logout",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"logout"
+							]
+						},
+						"description": "Log out from the system and clear the session."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"users"
+							]
+						},
+						"description": "Get a list of all users. (Admin Only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/users/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"users",
+								"3"
+							]
+						},
+						"description": "Get detailed information about a specific user. (Admin or self)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testmember\",\n    \"email\": \"testmember@lib.com\",\n    \"password\": \"memberpass\",\n    \"full_name\": \"Nguyen Van Test\",\n    \"phone\": \"0123456789\",\n    \"address\": \"Ha Noi\",\n    \"role\": \"member\",\n    \"max_borrow_limit\": 5\n}"
+						},
+						"url": {
+							"raw": "http://localhost/qlsach/api/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"users"
+							]
+						},
+						"description": "Create a new user. The password will be automatically hashed. (Admin Only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testmember_updated\",\n    \"email\": \"testmember_updated@lib.com\",\n    \"full_name\": \"Nguyen Van Test Updated\",\n    \"phone\": \"0987654321\",\n    \"address\": \"TP. HCM\",\n    \"role\": \"member\",\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost/qlsach/api/users/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"users",
+								"3"
+							]
+						},
+						"description": "Update details of a user. Send the field 'password' if you want to change the password. (Admin or self)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/users/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"users",
+								"3"
+							]
+						},
+						"description": "Delete a user. Will fail if they have active borrowings. (Admin Only)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Books",
+			"item": [
+				{
+					"name": "Get All Books",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/books",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"books"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Book Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/books/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"books",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Book",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Lập Trình PHP Advanced\",\n    \"isbn\": \"9781234567890\",\n    \"author_id\": 1,\n    \"publisher_id\": 1,\n    \"category_id\": 1,\n    \"total_copies\": 10,\n    \"publication_year\": 2024,\n    \"pages\": 350,\n    \"description\": \"Hướng dẫn lập trình PHP nâng cao\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost/qlsach/api/books",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"books"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Book",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Lập Trình PHP Advanced (Tái Bản)\",\n    \"isbn\": \"9781234567890\",\n    \"author_id\": 1,\n    \"publisher_id\": 1,\n    \"category_id\": 1,\n    \"total_copies\": 12,\n    \"publication_year\": 2025,\n    \"pages\": 360,\n    \"description\": \"Hướng dẫn lập trình PHP nâng cao mới nhất\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost/qlsach/api/books/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"books",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Book",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/books/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"books",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Borrowings",
+			"item": [
+				{
+					"name": "Get All Active Borrowings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/borrowings",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"borrowings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Borrowing Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/borrowings/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"borrowings",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Borrowing (Borrow Books)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 3,\n    \"book_ids\": [1, 2],\n    \"due_date\": \"2026-07-10\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost/qlsach/api/borrowings",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"borrowings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Renew Borrowing",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/borrowings/1/renew",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"borrowings",
+								"1",
+								"renew"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Return Borrowed Books",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"return_items\": [\n        {\n            \"loan_item_id\": 1,\n            \"quantity\": 1\n        }\n    ],\n    \"note\": \"Trả sách đúng hạn, tình trạng tốt\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost/qlsach/api/borrowings/1/return",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"borrowings",
+								"1",
+								"return"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Borrowing Slip",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/qlsach/api/borrowings/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"qlsach",
+								"api",
+								"borrowings",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
